@@ -42,7 +42,7 @@ export interface Receipt {
   fileSize: number;
   mimeType: string;
   ocrProcessed: boolean;
-  ocrData?: any;
+  ocrData?: Record<string, unknown>;
   extractedAmount?: number;
   extractedDate?: Date;
   extractedVendor?: string;
@@ -92,7 +92,6 @@ export interface ExpenseSummary {
     currency: string;
   };
 }
-
 
 export const PAYMENT_METHODS = [
   { value: "personal_card", label: "Personal Card" },
