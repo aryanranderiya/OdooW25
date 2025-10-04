@@ -1,6 +1,7 @@
 import { DasSidebar } from "@/components/sidebar";
 import { cn } from "@/lib/utils";
 import { DollarSign } from "lucide-react";
+import { CreditCard } from "lucide-react";
 
 export default function Layout({
   children,
@@ -27,12 +28,13 @@ export const Dashboard = ({ children }: { children: React.ReactNode }) => {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
-              <DollarSign className="size-5" />
+              <CreditCard className="size-5" />
             </div>
             <span className="text-lg font-semibold">Expense Management</span>
           </div>
         </div>
       </header>
+
       <div className="">{children}</div>
     </div>
   );
