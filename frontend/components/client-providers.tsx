@@ -1,7 +1,8 @@
 "use client";
 
-import { NotificationProvider } from "@/contexts/notification-context";
+// import { NotificationProvider } from "@/contexts/notification-context";
 
 export function ClientProviders({ children }: { children: React.ReactNode }) {
-  return <NotificationProvider>{children}</NotificationProvider>;
+  // Notification provider disabled until backend endpoints are implemented
+  return <>{children}</>;
 }

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ExpenseChart } from "@/components/expense-chart";
 import {
   Table,
   TableBody,
@@ -210,7 +211,7 @@ function ExpensePageContent() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid gap-6 md:grid-cols-3 mb-12">
+        <div className="grid gap-6 md:grid-cols-3 mb-8">
           <StatCard
             title="To Submit"
             amount={summary.toSubmit.totalAmount}
@@ -232,6 +233,11 @@ function ExpensePageContent() {
             count={summary.approved.count}
             icon={DollarSign}
           />
+        </div>
+
+        {/* Expense Chart */}
+        <div className="mb-8">
+          <ExpenseChart expenses={expenses} currency="USD" />
         </div>
 
         {/* Expenses Table */}
