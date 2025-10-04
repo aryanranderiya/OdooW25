@@ -222,7 +222,7 @@ export default function ExpenseForm({
   const statusConfig = getStatusConfig(currentStatus);
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-6 py-12 space-y-8">
         {/* Header */}
         <div className="space-y-4">
