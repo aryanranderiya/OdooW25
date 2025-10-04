@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
+import { CurrencySelect } from "@/components/ui/currency-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -18,8 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { formatCurrencyDisplay, getCurrencySymbol } from "@/lib/currency";
 import {
-  CURRENCY_OPTIONS,
   ExpenseFormData,
   ExpenseStatus,
   PAYMENT_METHODS,
@@ -65,7 +66,7 @@ export default function ExpenseForm({
     title: initialData?.title || "",
     description: initialData?.description || "",
     originalAmount: initialData?.originalAmount || 0,
-    originalCurrency: initialData?.originalCurrency || "INR",
+    originalCurrency: initialData?.originalCurrency || "USD",
     expenseDate: initialData?.expenseDate || new Date(),
     categoryId: initialData?.categoryId || "",
     receipts: initialData?.receipts || [],
@@ -219,13 +220,34 @@ export default function ExpenseForm({
                 </div>
 
                 <div className="space-y-3">
-                  <Label htmlFor="amount">Total Amount *</Label>
-                  <div className="flex gap-3">
+                  <Label htmlFor="currency">Currency *</Label>
+                  <CurrencySelect
+                    value={formData.originalCurrency}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        originalCurrency: value,
+                      }))
+                    }
+                    placeholder="Select currency"
+                    className={
+                      isReadOnly ? "opacity-50 pointer-events-none" : ""
+                    }
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="amount">Amount *</Label>
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      {getCurrencySymbol(formData.originalCurrency)}
+                    </div>
                     <Input
                       id="amount"
                       type="number"
                       step="0.01"
-                      value={formData.originalAmount}
+                      min="0"
+                      value={formData.originalAmount || ""}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
@@ -235,33 +257,17 @@ export default function ExpenseForm({
                       placeholder="0.00"
                       required
                       disabled={isReadOnly}
-                      className="flex-1"
+                      className="pl-8"
                     />
-                    <Select
-                      value={formData.originalCurrency}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          originalCurrency: value,
-                        }))
-                      }
-                      disabled={isReadOnly}
-                    >
-                      <SelectTrigger className="w-auto min-w-20">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CURRENCY_OPTIONS.map((currency) => (
-                          <SelectItem
-                            key={currency.value}
-                            value={currency.value}
-                          >
-                            {currency.value}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </div>
+                  {formData.originalAmount > 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      {formatCurrencyDisplay(
+                        formData.originalCurrency,
+                        formData.originalAmount
+                      )}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-3">

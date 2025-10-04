@@ -1,7 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
 import ExpenseForm from "@/components/expense-form";
 import { Expense, ExpenseStatus } from "@/lib/types/expense";
 
