@@ -29,13 +29,16 @@ import {
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReceiptUploadModal from "./receipt-upload-modal";
 import StatusFlow from "./status-flow";
 import { useCreateExpense } from "@/hooks/use-expenses";
 import { useCategories } from "@/hooks/use-categories";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/constants";
+import { useAuth } from "@/contexts/auth-context";
+import { convertCurrency } from "@/lib/currency-converter";
+import { formatCurrency } from "@/lib/utils";
 
 interface ExpenseFormProps {
   initialData?: Partial<ExpenseFormData>;
@@ -46,21 +49,23 @@ interface ExpenseFormProps {
     status: "PENDING" | "APPROVED" | "REJECTED";
     timestamp?: string;
   };
-  mode?: 'create' | 'view';
+  mode?: "create" | "view";
 }
 
 export default function ExpenseForm({
   initialData,
   currentStatus = ExpenseStatus.DRAFT,
   approvalInfo,
-  mode = 'create',
+  mode = "create",
 }: ExpenseFormProps) {
   const router = useRouter();
+  const { company } = useAuth();
   const { categories, isLoading: categoriesLoading } = useCategories();
   const createExpense = useCreateExpense();
 
-  const isViewMode = mode === 'view';
-  const isCreateMode = mode === 'create';
+  const isViewMode = mode === "view";
+  const isCreateMode = mode === "create";
+  const companyCurrency = company?.currency || "USD";
 
   const [formData, setFormData] = useState<ExpenseFormData>({
     title: initialData?.title || "",
@@ -74,6 +79,36 @@ export default function ExpenseForm({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
+  const [convertedAmount, setConvertedAmount] = useState<number | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
+
+  useEffect(() => {
+    async function performConversion() {
+      if (
+        formData.originalAmount > 0 &&
+        formData.originalCurrency !== companyCurrency
+      ) {
+        setIsConverting(true);
+        try {
+          const converted = await convertCurrency(
+            formData.originalAmount,
+            formData.originalCurrency,
+            companyCurrency
+          );
+          setConvertedAmount(converted);
+        } catch (error) {
+          console.error("Conversion error:", error);
+          setConvertedAmount(null);
+        } finally {
+          setIsConverting(false);
+        }
+      } else {
+        setConvertedAmount(null);
+      }
+    }
+
+    performConversion();
+  }, [formData.originalAmount, formData.originalCurrency, companyCurrency]);
 
   const isReadOnly = isViewMode;
   const showSubmitButton = isCreateMode;
@@ -275,12 +310,29 @@ export default function ExpenseForm({
                     />
                   </div>
                   {formData.originalAmount > 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      {formatCurrencyDisplay(
-                        formData.originalCurrency,
-                        formData.originalAmount
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">
+                        {formatCurrencyDisplay(
+                          formData.originalCurrency,
+                          formData.originalAmount
+                        )}
+                      </p>
+                      {formData.originalCurrency !== companyCurrency && (
+                        <p className="text-sm font-medium text-zinc-700">
+                          {isConverting ? (
+                            "Converting..."
+                          ) : convertedAmount !== null ? (
+                            <>
+                              ≈{" "}
+                              {formatCurrency(convertedAmount, companyCurrency)}
+                              <span className="text-xs text-muted-foreground ml-1">
+                                (Company Currency)
+                              </span>
+                            </>
+                          ) : null}
+                        </p>
                       )}
-                    </p>
+                    </div>
                   )}
                 </div>
 

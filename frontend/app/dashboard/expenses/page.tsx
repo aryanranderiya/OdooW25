@@ -27,6 +27,8 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { ROUTES } from "@/lib/constants";
 import { useExpenses } from "@/hooks/use-expenses";
 import { AuthGuard } from "@/components/auth-guard";
+import { useAuth } from "@/contexts/auth-context";
+import { convertCurrency } from "@/lib/currency-converter";
 
 function getStatusBadge(status: ExpenseStatus) {
   switch (status) {
@@ -122,42 +124,55 @@ function StatCard({
 
 function ExpensePageContent() {
   const router = useRouter();
+  const { company } = useAuth();
   const { data: expenses = [], error, isLoading } = useExpenses();
+  const companyCurrency = company?.currency || "USD";
   const [summary, setSummary] = useState<ExpenseSummary>({
-    toSubmit: { count: 0, totalAmount: 0, currency: "USD" },
-    waitingApproval: { count: 0, totalAmount: 0, currency: "USD" },
-    approved: { count: 0, totalAmount: 0, currency: "USD" },
+    toSubmit: { count: 0, totalAmount: 0, currency: companyCurrency },
+    waitingApproval: { count: 0, totalAmount: 0, currency: companyCurrency },
+    approved: { count: 0, totalAmount: 0, currency: companyCurrency },
   });
 
   useEffect(() => {
-    // Calculate summary from expenses
-    const newSummary = expenses.reduce(
-      (acc, expense) => {
+    async function calculateSummary() {
+      const newSummary = {
+        toSubmit: { count: 0, totalAmount: 0, currency: companyCurrency },
+        waitingApproval: {
+          count: 0,
+          totalAmount: 0,
+          currency: companyCurrency,
+        },
+        approved: { count: 0, totalAmount: 0, currency: companyCurrency },
+      };
+
+      for (const expense of expenses) {
+        const convertedAmount = await convertCurrency(
+          expense.originalAmount,
+          expense.originalCurrency,
+          companyCurrency
+        );
+
         switch (expense.status) {
           case ExpenseStatus.DRAFT:
-            acc.toSubmit.count++;
-            acc.toSubmit.totalAmount += expense.convertedAmount;
+            newSummary.toSubmit.count++;
+            newSummary.toSubmit.totalAmount += convertedAmount;
             break;
           case ExpenseStatus.PENDING_APPROVAL:
-            acc.waitingApproval.count++;
-            acc.waitingApproval.totalAmount += expense.convertedAmount;
+            newSummary.waitingApproval.count++;
+            newSummary.waitingApproval.totalAmount += convertedAmount;
             break;
           case ExpenseStatus.APPROVED:
-            acc.approved.count++;
-            acc.approved.totalAmount += expense.convertedAmount;
+            newSummary.approved.count++;
+            newSummary.approved.totalAmount += convertedAmount;
             break;
         }
-        return acc;
-      },
-      {
-        toSubmit: { count: 0, totalAmount: 0, currency: "USD" },
-        waitingApproval: { count: 0, totalAmount: 0, currency: "USD" },
-        approved: { count: 0, totalAmount: 0, currency: "USD" },
       }
-    );
 
-    setSummary(newSummary);
-  }, [expenses]);
+      setSummary(newSummary);
+    }
+
+    calculateSummary();
+  }, [expenses, companyCurrency]);
 
   if (error) {
     return (
