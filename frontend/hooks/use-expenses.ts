@@ -3,18 +3,42 @@ import useSWRMutation from "swr/mutation";
 import { expenseApi } from "@/lib/expense-api";
 import type { Expense } from "@/lib/types/expense";
 
-// Simple fetcher functions
+export interface GetExpensesParams {
+  page?: number;
+  limit?: number;
+  status?: string;
+  category?: string;
+}
+
+export interface CreateExpenseData {
+  title: string;
+  description?: string;
+  originalAmount: number;
+  originalCurrency: string;
+  expenseDate: Date;
+  categoryId?: string;
+}
+
+// Fetcher functions that handle the paginated response structure
 const fetchers = {
-  expenses: (params?: any) => expenseApi.getExpenses(params),
+  expenses: async (params?: GetExpensesParams) => {
+    const response = await expenseApi.getExpenses(params);
+    // Backend returns { expenses: [...], pagination: {...} }
+    // Extract just the expenses array for the UI
+    return response.expenses || [];
+  },
 };
 
 // Simple mutation function
-const createExpenseMutator = async (_: string, { arg }: { arg: any }) => {
+const createExpenseMutator = async (
+  _: string,
+  { arg }: { arg: CreateExpenseData }
+) => {
   return expenseApi.createExpense(arg);
 };
 
 // Hook for fetching expenses
-export function useExpenses(params?: any) {
+export function useExpenses(params?: GetExpensesParams) {
   return useSWR<Expense[]>(
     params ? ["/expenses", params] : "/expenses",
     () => fetchers.expenses(params),

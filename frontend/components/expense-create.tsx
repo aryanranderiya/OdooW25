@@ -64,7 +64,7 @@ export default function ExpenseCreate() {
         description: formData.description,
         originalAmount: formData.originalAmount,
         originalCurrency: formData.originalCurrency,
-        expenseDate: formData.expenseDate.toISOString(),
+        expenseDate: formData.expenseDate,
         categoryId: formData.categoryId,
       });
       toast.success("Expense created successfully!");

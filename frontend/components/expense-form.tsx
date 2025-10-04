@@ -82,7 +82,9 @@ export default function ExpenseForm({
     description: initialData?.description || "",
     originalAmount: initialData?.originalAmount || 0,
     originalCurrency: initialData?.originalCurrency || "USD",
-    expenseDate: initialData?.expenseDate || new Date(),
+    expenseDate: initialData?.expenseDate 
+      ? new Date(initialData.expenseDate) 
+      : new Date(),
     categoryId: initialData?.categoryId || "",
     receipts: initialData?.receipts || [],
   });
