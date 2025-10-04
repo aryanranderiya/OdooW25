@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
@@ -39,10 +40,19 @@ export class CreateExpenseDto {
   @ApiProperty({ description: 'Category ID', required: false })
   @IsOptional()
   @IsString()
+=======
+export class CreateExpenseDto {
+  title: string;
+  description?: string;
+  originalAmount: number;
+  originalCurrency: string;
+  expenseDate: string;
+>>>>>>> 8737644 (feat: workflow management backend)
   categoryId?: string;
 }
 
 export class UpdateExpenseDto {
+<<<<<<< HEAD
   @ApiProperty({ description: 'Expense title/description', required: false })
   @IsOptional()
   @IsString()
@@ -88,4 +98,25 @@ export class UploadReceiptsDto {
   @IsOptional()
   @IsString()
   expenseId?: string;
+=======
+  title?: string;
+  description?: string;
+  originalAmount?: number;
+  originalCurrency?: string;
+  expenseDate?: string;
+  categoryId?: string;
+}
+
+export class SubmitExpenseDto {
+  // Optional - can be used to include any additional submission notes
+  notes?: string;
+}
+
+export class GetExpensesQueryDto {
+  status?: string;
+  categoryId?: string;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+>>>>>>> 8737644 (feat: workflow management backend)
 }

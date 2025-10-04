@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+<<<<<<< HEAD
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -38,6 +39,15 @@ import { AuthModule } from '../auth/auth.module';
   ],
   controllers: [ExpensesController],
   providers: [ExpensesService, OcrService, PrismaService],
+=======
+import { ExpensesService } from './expenses.service';
+import { ExpensesController } from './expenses.controller';
+import { PrismaService } from '../../prisma/prisma.service';
+
+@Module({
+  controllers: [ExpensesController],
+  providers: [ExpensesService, PrismaService],
+>>>>>>> 8737644 (feat: workflow management backend)
   exports: [ExpensesService],
 })
 export class ExpensesModule {}
