@@ -61,7 +61,7 @@ export class AuthController {
   getCurrentUser(@CurrentUser() user: any) {
     return {
       user: {
-        id: user.userId,
+        id: user.id,
         email: user.email,
         name: user.name,
         role: user.role,

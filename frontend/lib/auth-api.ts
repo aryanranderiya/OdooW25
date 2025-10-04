@@ -23,6 +23,7 @@ export const authApi = {
   getCurrentUser: async (): Promise<AuthResponse | null> => {
     try {
       const response = await api.get<AuthResponse>('/auth/me');
+
       return response.data;
     } catch {
       return null;
