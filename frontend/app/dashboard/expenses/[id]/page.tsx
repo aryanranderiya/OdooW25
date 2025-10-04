@@ -45,12 +45,12 @@ export default function ExpenseDetailPage({
       ? new Date(expense.expenseDate)
       : expense.expenseDate;
 
-  const approvalInfo = expense.approvalRequests?.[0]
+  const approvalInfo = expense.approvalActions?.[0]
     ? {
-        approver: expense.approvalRequests[0].approver.name,
-        status: expense.approvalRequests[0].status,
-        timestamp: expense.approvalRequests[0].actionDate
-          ? new Date(expense.approvalRequests[0].actionDate).toLocaleString()
+        approver: expense.approvalActions[0].approver.name,
+        status: expense.approvalActions[0].status,
+        timestamp: expense.approvalActions[0].createdAt
+          ? new Date(expense.approvalActions[0].createdAt).toLocaleString()
           : undefined,
       }
     : undefined;

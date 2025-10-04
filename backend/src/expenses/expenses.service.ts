@@ -2,6 +2,8 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OcrService } from './ocr.service';
@@ -11,12 +13,15 @@ import {
   UploadReceiptsDto,
 } from './dto/expense.dto';
 import { ExpenseStatus } from '@prisma/client';
+import { ApprovalsService } from '../approvals/approvals.service';
 
 @Injectable()
 export class ExpensesService {
   constructor(
     private prisma: PrismaService,
     private ocrService: OcrService,
+    @Inject(forwardRef(() => ApprovalsService))
+    private approvalsService: ApprovalsService,
   ) {}
 
   async create(createExpenseDto: CreateExpenseDto, userId: string) {
@@ -49,7 +54,8 @@ export class ExpensesService {
         submitterId: userId,
         companyId: user.companyId,
         categoryId: createExpenseDto.categoryId,
-        status: ExpenseStatus.DRAFT,
+        status: ExpenseStatus.PENDING_APPROVAL,
+        submittedAt: new Date(),
       },
       include: {
         submitter: { select: { name: true, email: true } },
@@ -303,12 +309,19 @@ export class ExpensesService {
       where: {
         id,
         submitterId: userId,
-        status: ExpenseStatus.DRAFT,
       },
     });
 
     if (!expense) {
-      throw new NotFoundException('Expense not found or cannot be updated');
+      throw new NotFoundException('Expense not found');
+    }
+
+    if (expense.status === ExpenseStatus.APPROVED) {
+      throw new BadRequestException('Cannot update an approved expense');
+    }
+
+    if (expense.status === ExpenseStatus.REJECTED) {
+      throw new BadRequestException('Cannot update a rejected expense');
     }
 
     const user = await this.prisma.user.findUnique({
@@ -366,7 +379,7 @@ export class ExpensesService {
       throw new NotFoundException('Expense not found or cannot be submitted');
     }
 
-    return this.prisma.expense.update({
+    const updatedExpense = await this.prisma.expense.update({
       where: { id },
       data: {
         status: ExpenseStatus.PENDING_APPROVAL,
@@ -378,6 +391,8 @@ export class ExpensesService {
         receipts: true,
       },
     });
+
+    return updatedExpense;
   }
 
   async remove(id: string, userId: string) {

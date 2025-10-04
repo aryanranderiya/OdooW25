@@ -54,14 +54,7 @@ export function DasSidebar() {
     },
   ];
 
-  const commonLinks = [
-    {
-      label: "Settings",
-      href: ROUTES.SETTINGS,
-      icon: (
-        <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-      ),
-    },
+  const managerLinks = [
     {
       label: "Approval",
       href: ROUTES.ADMIN,
@@ -74,7 +67,7 @@ export function DasSidebar() {
   const links = [
     ...baseLinks,
     ...(user?.role === "ADMIN" ? adminLinks : []),
-    ...commonLinks,
+    ...(user?.role === "MANAGER" || user?.role === "ADMIN" ? managerLinks : []),
   ];
 
   return (

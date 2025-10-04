@@ -65,7 +65,7 @@ model User {
   manager                    User?             @relation("ManagerEmployee", fields: [managerId], references: [id])
   employees                  User[]            @relation("ManagerEmployee")
   submittedExpenses          Expense[]         @relation("ExpenseSubmitter")
-  approvalRequests           ApprovalRequest[]
+  approvalActions            ApprovalAction[]
   approvalSteps              ApprovalStep[]
   specificApproverRules      ApprovalRule[]    @relation("SpecificApprover")
   notifications              Notification[]
@@ -112,7 +112,7 @@ model Expense {
   approvalRuleId     String?
   approvalRule       ApprovalRule?     @relation(fields: [approvalRuleId], references: [id], onDelete: SetNull)
   expenseItems       ExpenseItem[]
-  approvalRequests   ApprovalRequest[]
+  approvalActions    ApprovalAction[]
   receipts           Receipt[]
   submittedAt        DateTime?
   approvedAt         DateTime?
@@ -200,23 +200,19 @@ model ApprovalStep {
   @@index([approverId])
 }
 
-model ApprovalRequest {
+model ApprovalAction {
   id         String         @id @default(cuid())
   expenseId  String
   expense    Expense        @relation(fields: [expenseId], references: [id], onDelete: Cascade)
   approverId String
   approver   User           @relation(fields: [approverId], references: [id])
-  stepNumber Int
-  status     ApprovalStatus @default(PENDING)
+  status     ApprovalStatus
   comment    String?
-  actionDate DateTime?
   createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
 
-  @@unique([expenseId, stepNumber])
+  @@unique([expenseId, approverId])
   @@index([expenseId])
   @@index([approverId])
-  @@index([status])
 }
 
 enum NotificationType {

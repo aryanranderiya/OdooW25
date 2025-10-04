@@ -6,6 +6,33 @@ export enum ExpenseStatus {
   CANCELLED = "CANCELLED",
 }
 
+export interface ApprovalAction {
+  id: string;
+  approver: {
+    name: string;
+    email: string;
+    role: string;
+  };
+  status: "APPROVED" | "REJECTED";
+  comment?: string;
+  createdAt: Date;
+}
+
+export interface Receipt {
+  id: string;
+  filename: string;
+  fileUrl: string;
+  fileSize: number;
+  mimeType: string;
+  ocrProcessed: boolean;
+  ocrData?: Record<string, unknown>;
+  extractedAmount?: number;
+  extractedDate?: Date;
+  extractedVendor?: string;
+  extractedCategory?: string;
+  uploadedAt: Date;
+}
+
 export interface Expense {
   id: string;
   title: string;
@@ -32,32 +59,7 @@ export interface Expense {
   rejectedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
-  approvalRequests?: ApprovalRequest[];
-}
-
-export interface Receipt {
-  id: string;
-  filename: string;
-  fileUrl: string;
-  fileSize: number;
-  mimeType: string;
-  ocrProcessed: boolean;
-  ocrData?: Record<string, unknown>;
-  extractedAmount?: number;
-  extractedDate?: Date;
-  extractedVendor?: string;
-  extractedCategory?: string;
-  uploadedAt: Date;
-}
-
-export interface ApprovalRequest {
-  id: string;
-  approver: {
-    name: string;
-  };
-  status: "PENDING" | "APPROVED" | "REJECTED";
-  comment?: string;
-  actionDate?: Date;
+  approvalActions?: ApprovalAction[];
 }
 
 export interface Category {

@@ -58,6 +58,7 @@ export class UsersService {
         name: createUserDto.name,
         email: createUserDto.email,
         passwordHash,
+        emailVerified: true,
         role: createUserDto.role,
         companyId: admin.companyId,
         managerId: createUserDto.managerId,
