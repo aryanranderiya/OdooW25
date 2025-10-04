@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ExpenseChart } from "@/components/expense-chart";
 import {
   Table,
   TableBody,
@@ -123,41 +124,37 @@ function StatCard({
 function ExpensePageContent() {
   const router = useRouter();
   const { data: expenses = [], error, isLoading } = useExpenses();
-  const [summary, setSummary] = useState<ExpenseSummary>({
-    toSubmit: { count: 0, totalAmount: 0, currency: "USD" },
-    waitingApproval: { count: 0, totalAmount: 0, currency: "USD" },
-    approved: { count: 0, totalAmount: 0, currency: "USD" },
-  });
+  // const [summary, setSummary] = useState<ExpenseSummary>({
+  //   toSubmit: { count: 0, totalAmount: 0, currency: "USD" },
+  //   waitingApproval: { count: 0, totalAmount: 0, currency: "USD" },
+  //   approved: { count: 0, totalAmount: 0, currency: "USD" },
+  // });
 
-  useEffect(() => {
-    // Calculate summary from expenses
-    const newSummary = expenses.reduce(
-      (acc, expense) => {
-        switch (expense.status) {
-          case ExpenseStatus.DRAFT:
-            acc.toSubmit.count++;
-            acc.toSubmit.totalAmount += expense.convertedAmount;
-            break;
-          case ExpenseStatus.PENDING_APPROVAL:
-            acc.waitingApproval.count++;
-            acc.waitingApproval.totalAmount += expense.convertedAmount;
-            break;
-          case ExpenseStatus.APPROVED:
-            acc.approved.count++;
-            acc.approved.totalAmount += expense.convertedAmount;
-            break;
-        }
-        return acc;
-      },
-      {
-        toSubmit: { count: 0, totalAmount: 0, currency: "USD" },
-        waitingApproval: { count: 0, totalAmount: 0, currency: "USD" },
-        approved: { count: 0, totalAmount: 0, currency: "USD" },
+  // Calculate summary from expenses
+  const summary = expenses.reduce(
+    (acc, expense) => {
+      switch (expense.status) {
+        case ExpenseStatus.DRAFT:
+          acc.toSubmit.count++;
+          acc.toSubmit.totalAmount += expense.convertedAmount;
+          break;
+        case ExpenseStatus.PENDING_APPROVAL:
+          acc.waitingApproval.count++;
+          acc.waitingApproval.totalAmount += expense.convertedAmount;
+          break;
+        case ExpenseStatus.APPROVED:
+          acc.approved.count++;
+          acc.approved.totalAmount += expense.convertedAmount;
+          break;
       }
-    );
-
-    setSummary(newSummary);
-  }, [expenses]);
+      return acc;
+    },
+    {
+      toSubmit: { count: 0, totalAmount: 0, currency: "USD" },
+      waitingApproval: { count: 0, totalAmount: 0, currency: "USD" },
+      approved: { count: 0, totalAmount: 0, currency: "USD" },
+    }
+  );
 
   if (error) {
     return (
@@ -195,7 +192,7 @@ function ExpensePageContent() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid gap-6 md:grid-cols-3 mb-12">
+        <div className="grid gap-6 md:grid-cols-3 mb-8">
           <StatCard
             title="To Submit"
             amount={summary.toSubmit.totalAmount}
@@ -217,6 +214,11 @@ function ExpensePageContent() {
             count={summary.approved.count}
             icon={DollarSign}
           />
+        </div>
+
+        {/* Expense Chart */}
+        <div className="mb-8">
+          <ExpenseChart expenses={expenses} currency="USD" />
         </div>
 
         {/* Expenses Table */}
