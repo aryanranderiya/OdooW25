@@ -5,7 +5,10 @@ import type { Category } from "@/lib/types/expense";
 export function useCategories() {
   const { data, error, isLoading } = useSWR<Category[]>(
     "/expenses/categories",
-    () => expenseApi.getCategories()
+    () => expenseApi.getCategories(),
+    {
+      revalidateOnMount: true,
+    }
   );
 
   return {
