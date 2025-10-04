@@ -52,7 +52,7 @@ export interface AuthResponse {
 export interface CreateUserData {
   name: string;
   email: string;
-  password: string;
+  password?: string; // Make password optional since it will be generated
   role: "ADMIN" | "MANAGER" | "EMPLOYEE";
   managerId?: string;
   isManagerApprover?: boolean;

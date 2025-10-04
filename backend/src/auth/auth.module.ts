@@ -25,6 +25,6 @@ import { EmailService } from './email.service';
     JwtStrategy,
   ],
   controllers: [AuthController],
-  exports: [AuthService, JwtAuthGuard, RolesGuard, JwtModule],
+  exports: [AuthService, EmailService, JwtAuthGuard, RolesGuard, JwtModule],
 })
 export class AuthModule {}

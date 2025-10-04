@@ -8,6 +8,7 @@ import { CompaniesModule } from './companies/companies.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ExpensesModule } from './expenses/expenses.module';
 import { ApprovalsModule } from './approvals/approvals.module';
+import { CurrencyModule } from './currency/currency.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ApprovalsModule } from './approvals/approvals.module';
     ExpensesModule,
     NotificationsModule,
     ApprovalsModule,
+    CurrencyModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
