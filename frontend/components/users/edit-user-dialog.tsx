@@ -128,7 +128,8 @@ export function EditUserDialog({
 
       toast.success("User updated successfully");
       onSuccess();
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       toast.error(error.response?.data?.message || "Failed to update user");
     }
   };

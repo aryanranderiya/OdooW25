@@ -40,10 +40,6 @@ const createUserSchema = z
       .min(2, "Name must be at least 2 characters")
       .max(100, "Name must be less than 100 characters"),
     email: z.string().email("Invalid email address"),
-    password: z
-      .string()
-      .min(6, "Password must be at least 6 characters")
-      .max(100, "Password must be less than 100 characters"),
     role: z.enum(["EMPLOYEE", "MANAGER", "ADMIN"]),
     managerId: z.string().optional(),
     isManagerApprover: z.boolean(),
@@ -81,7 +77,6 @@ export function CreateUserDialog({
     defaultValues: {
       name: "",
       email: "",
-      password: "",
       role: "EMPLOYEE",
       isManagerApprover: false,
     },
@@ -116,10 +111,13 @@ export function CreateUserDialog({
         ...data,
         managerId: data.managerId === "none" ? undefined : data.managerId,
       });
-      toast.success("User created successfully");
+      toast.success(
+        "User created successfully! Login credentials and email verification link have been sent to their email address."
+      );
       form.reset();
       onSuccess();
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       toast.error(error.response?.data?.message || "Failed to create user");
     }
   };
@@ -134,7 +132,8 @@ export function CreateUserDialog({
         <DialogHeader>
           <DialogTitle>Create New User</DialogTitle>
           <DialogDescription>
-            Add a new employee or manager to your organization
+            Add a new employee or manager to your organization. Login
+            credentials will be sent via email.
           </DialogDescription>
         </DialogHeader>
 
@@ -164,24 +163,6 @@ export function CreateUserDialog({
                     <Input
                       {...field}
                       type="email"
-                      disabled={form.formState.isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="password"
                       disabled={form.formState.isSubmitting}
                     />
                   </FormControl>
