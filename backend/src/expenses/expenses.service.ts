@@ -11,6 +11,7 @@ import {
   UploadReceiptsDto,
 } from './dto/expense.dto';
 import { ExpenseStatus } from '@prisma/client';
+import axios from 'axios';
 
 @Injectable()
 export class ExpensesService {
@@ -30,7 +31,7 @@ export class ExpensesService {
     }
 
     // Calculate converted amount based on company currency
-    const convertedAmount = this.calculateConvertedAmount(
+    const convertedAmount = await this.calculateConvertedAmount(
       createExpenseDto.originalAmount,
       createExpenseDto.originalCurrency,
       user.company.currency,
@@ -197,7 +198,7 @@ export class ExpensesService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    const convertedAmount = this.calculateConvertedAmount(
+    const convertedAmount = await this.calculateConvertedAmount(
       receipt.extractedAmount || 0,
       user.company.currency,
       user.company.currency,
@@ -328,7 +329,7 @@ export class ExpensesService {
         throw new NotFoundException('User or company not found');
       }
 
-      convertedAmount = this.calculateConvertedAmount(
+      convertedAmount = await this.calculateConvertedAmount(
         amount,
         currency,
         user.company.currency,
@@ -490,27 +491,48 @@ export class ExpensesService {
     };
   }
 
-  private calculateConvertedAmount(
+  private async calculateConvertedAmount(
     amount: number,
     fromCurrency: string,
     toCurrency: string,
-  ): number {
-    // Simplified currency conversion - in production, use a real exchange rate API
+  ): Promise<number> {
+    // If currencies are the same, no conversion needed
     if (fromCurrency === toCurrency) {
+      console.log(`No conversion needed: ${fromCurrency} === ${toCurrency}`);
       return amount;
     }
 
-    // Mock exchange rates - replace with real API
-    const exchangeRates = {
-      'USD-EUR': 0.85,
-      'EUR-USD': 1.18,
-      'USD-GBP': 0.73,
-      'GBP-USD': 1.37,
-    };
+    console.log(`Converting ${amount} ${fromCurrency} to ${toCurrency}...`);
 
-    const rateKey = `${fromCurrency}-${toCurrency}`;
-    const rate = exchangeRates[rateKey] || 1;
+    try {
+      // Use axios instead of fetch for better Node.js compatibility
+      const response = await axios.get(
+        `https://api.exchangerate-api.com/v4/latest/${fromCurrency}`,
+      );
 
-    return amount * rate;
+      const data = response.data;
+      const rate = data.rates[toCurrency];
+
+      if (!rate) {
+        console.error(
+          `Exchange rate not found for ${fromCurrency} to ${toCurrency}`,
+        );
+        console.error('Available rates:', Object.keys(data.rates));
+        return amount;
+      }
+
+      const convertedAmount = amount * rate;
+      console.log(
+        `Converted ${amount} ${fromCurrency} to ${convertedAmount} ${toCurrency} (rate: ${rate})`,
+      );
+      return convertedAmount;
+    } catch (error) {
+      console.error('Currency conversion error:', error.message);
+      if (error.response) {
+        console.error('API Response:', error.response.data);
+      }
+      // Fallback to 1:1 conversion if API call fails
+      return amount;
+    }
   }
 }

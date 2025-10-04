@@ -43,23 +43,20 @@ async function main() {
     where: { role: 'ADMIN' },
   });
 
-  if (!adminUser) {
-    console.log('Creating default admin user...');
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+  console.log('Creating default admin user...');
+  const hashedPassword = await bcrypt.hash('admin123', 10);
 
-    adminUser = await prisma.user.create({
-      data: {
-        name: 'Admin User',
-        email: 'admin@company.com',
-        passwordHash: hashedPassword,
-        role: 'ADMIN',
-        companyId: company.id,
-      },
-    });
-    console.log(`Created admin user: ${adminUser.email}`);
-  } else {
-    console.log(`Using existing admin user: ${adminUser.email}`);
-  }
+  adminUser = await prisma.user.create({
+    data: {
+      name: 'Admin User',
+      email: 'admin@company.com',
+      passwordHash: hashedPassword,
+      role: 'ADMIN',
+      emailVerified: true,
+      companyId: company.id,
+    },
+  });
+  console.log(`Created admin user: ${adminUser.email}`);
 
   // Create default categories for the company
   console.log('Creating expense categories...');
@@ -120,6 +117,17 @@ async function main() {
       const status =
         expenseStatuses[Math.floor(Math.random() * expenseStatuses.length)];
 
+      // Set appropriate dates based on status
+      const submittedAt = status !== 'DRAFT' ? date : null;
+      const approvedAt =
+        status === 'APPROVED'
+          ? new Date(date.getTime() + 24 * 60 * 60 * 1000)
+          : null; // +1 day
+      const rejectedAt =
+        status === 'REJECTED'
+          ? new Date(date.getTime() + 24 * 60 * 60 * 1000)
+          : null; // +1 day
+
       await prisma.expense.create({
         data: {
           title: `${category.name} expense for ${date.toLocaleDateString()}`,
@@ -134,6 +142,9 @@ async function main() {
           submitterId: adminUser.id,
           companyId: company.id,
           categoryId: category.id,
+          submittedAt,
+          approvedAt,
+          rejectedAt,
         },
       });
       expensesCreated++;
@@ -155,6 +166,6 @@ main()
     console.error('Error during seeding:', e);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
+  .finally(() => {
+    void prisma.$disconnect();
   });

@@ -12,6 +12,9 @@ interface ExpenseViewProps {
     description?: string;
     originalAmount: number;
     originalCurrency: string;
+    convertedAmount: number;
+    companyCurrency: string;
+    exchangeRate: number;
     expenseDate: Date;
     categoryId?: string;
     status: ExpenseStatus;
@@ -118,6 +121,20 @@ export default function ExpenseView({
                   {expense.originalCurrency}
                 </p>
               </div>
+              {expense.originalCurrency !== expense.companyCurrency && (
+                <div className="flex items-baseline gap-2 mt-2">
+                  <p className="text-2xl font-semibold text-zinc-600 dark:text-zinc-400">
+                    ≈ {getCurrencySymbol(expense.companyCurrency)}
+                    {expense.convertedAmount.toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </p>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                    {expense.companyCurrency} (Company Currency)
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Details Grid */}

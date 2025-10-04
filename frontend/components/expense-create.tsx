@@ -32,7 +32,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ReceiptUploadModal from "./receipt-upload-modal";
 import StatusFlow from "./status-flow";
-import { useCreateExpense } from "@/hooks/use-expenses";
+import { createExpense } from "@/hooks/use-expenses";
 import { useCategories } from "@/hooks/use-categories";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/constants";
@@ -40,7 +40,7 @@ import { ROUTES } from "@/lib/constants";
 export default function ExpenseCreate() {
   const router = useRouter();
   const { categories, isLoading: categoriesLoading } = useCategories();
-  const createExpense = useCreateExpense();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<ExpenseFormData>({
     title: "",
@@ -57,9 +57,10 @@ export default function ExpenseCreate() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      await createExpense.trigger({
+      await createExpense({
         title: formData.title,
         description: formData.description,
         originalAmount: formData.originalAmount,
@@ -73,6 +74,8 @@ export default function ExpenseCreate() {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to create expense";
       toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -277,12 +280,10 @@ export default function ExpenseCreate() {
             <Button
               type="submit"
               disabled={
-                createExpense.isMutating ||
-                !formData.title ||
-                formData.originalAmount <= 0
+                isSubmitting || !formData.title || formData.originalAmount <= 0
               }
             >
-              {createExpense.isMutating ? "Submitting..." : "Submit Expense"}
+              {isSubmitting ? "Submitting..." : "Submit Expense"}
             </Button>
           </div>
         </form>

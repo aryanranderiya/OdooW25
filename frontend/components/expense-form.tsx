@@ -40,7 +40,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import StatusFlow from "./status-flow";
-import { useCreateExpense } from "@/hooks/use-expenses";
+import { createExpense } from "@/hooks/use-expenses";
 import { useCategories } from "@/hooks/use-categories";
 import { useCurrencyConversion } from "@/hooks/use-currency";
 import { toast } from "sonner";
@@ -71,8 +71,8 @@ export default function ExpenseForm({
   const router = useRouter();
   const { company } = useAuth();
   const { categories, isLoading: categoriesLoading } = useCategories();
-  const createExpense = useCreateExpense();
   const { ocrState, uploadAndProcess, resetOcr } = useOcr();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isViewMode = mode === "view";
   const isCreateMode = mode === "create";
@@ -168,9 +168,10 @@ export default function ExpenseForm({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      await createExpense.trigger({
+      await createExpense({
         title: formData.title,
         description: formData.description,
         originalAmount: formData.originalAmount,
@@ -184,6 +185,8 @@ export default function ExpenseForm({
       const errorMessage =
         error instanceof Error ? error.message : "Failed to create expense";
       toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -760,14 +763,12 @@ export default function ExpenseForm({
                   <Button
                     type="submit"
                     disabled={
-                      createExpense.isMutating ||
+                      isSubmitting ||
                       !formData.title ||
                       formData.originalAmount <= 0
                     }
                   >
-                    {createExpense.isMutating
-                      ? "Submitting..."
-                      : "Submit Expense"}
+                    {isSubmitting ? "Submitting..." : "Submit Expense"}
                   </Button>
                 </div>
               )}
