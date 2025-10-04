@@ -1,10 +1,12 @@
-import { AuthGuard } from "@/components/auth-guard";
-import ExpenseCreate from "@/components/expense-create";
+"use client";
 
-export default function NewExpensePage() {
+import { AuthGuard } from "@/components/auth-guard";
+import ExpenseForm from "@/components/expense-form";
+
+export default function CreateExpensePage() {
   return (
     <AuthGuard>
-      <ExpenseCreate />
+      <ExpenseForm mode="create" />
     </AuthGuard>
   );
 }

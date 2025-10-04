@@ -95,14 +95,19 @@ export function SignupForm({
 
   const onSubmit = async (data: SignupFormValues) => {
     try {
-      await signup({
+      const response = await signup({
         name: data.name,
         email: data.email,
         password: data.password,
         companyName: data.companyName,
         country: data.country,
       });
-      toast.success("Account created successfully!");
+      
+      if (response) {
+        toast.success(
+          "Account created! Please check your email to verify your account."
+        );
+      }
     } catch (error: any) {
       toast.error(
         error.response?.data?.message || "Signup failed. Please try again."

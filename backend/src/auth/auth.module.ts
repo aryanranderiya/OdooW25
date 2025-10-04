@@ -8,6 +8,7 @@ import { CompaniesModule } from '../companies/companies.module';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { EmailService } from './email.service';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   ],
   providers: [
     AuthService,
+    EmailService,
     PrismaService,
     JwtAuthGuard,
     RolesGuard,

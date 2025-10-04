@@ -1,4 +1,5 @@
 import axios from "axios";
+import { ROUTES } from "./constants";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -16,10 +17,13 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       if (
         typeof window !== "undefined" &&
-        window.location.pathname !== "/login" &&
-        window.location.pathname !== "/signup"
+        window.location.pathname !== ROUTES.LOGIN &&
+        window.location.pathname !== ROUTES.SIGNUP &&
+        window.location.pathname !== ROUTES.VERIFY_EMAIL &&
+        window.location.pathname !== ROUTES.FORGOT_PASSWORD &&
+        window.location.pathname !== ROUTES.RESET_PASSWORD
       ) {
-        window.location.href = "/login";
+        window.location.href = ROUTES.LOGIN;
       }
     }
     return Promise.reject(error);

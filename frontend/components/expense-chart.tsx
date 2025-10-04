@@ -1,27 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Expense } from "@/lib/types/expense";
 
 interface ExpenseChartProps {
@@ -36,11 +19,13 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function ExpenseChart({
-  expenses,
-  currency = "USD",
-}: ExpenseChartProps) {
+export function ExpenseChart({ expenses, currency = "USD" }: ExpenseChartProps) {
   const [timeRange, setTimeRange] = useState("30d");
+
+  // Memoize the time range change handler to prevent recreating on every render
+  const handleTimeRangeChange = useCallback((value: string) => {
+    setTimeRange(value);
+  }, []);
 
   const chartData = useMemo(() => {
     const referenceDate = new Date();
@@ -57,19 +42,13 @@ export function ExpenseChart({
 
     // Filter expenses within the time range
     const filteredExpenses = expenses.filter((expense) => {
-      const expenseDate =
-        typeof expense.expenseDate === "string"
-          ? new Date(expense.expenseDate)
-          : expense.expenseDate;
+      const expenseDate = typeof expense.expenseDate === "string" ? new Date(expense.expenseDate) : expense.expenseDate;
       return expenseDate >= startDate && expenseDate <= referenceDate;
     });
 
     // Group expenses by date
     const expensesByDate = filteredExpenses.reduce((acc, expense) => {
-      const expenseDate =
-        typeof expense.expenseDate === "string"
-          ? new Date(expense.expenseDate)
-          : expense.expenseDate;
+      const expenseDate = typeof expense.expenseDate === "string" ? new Date(expense.expenseDate) : expense.expenseDate;
       const dateKey = expenseDate.toISOString().split("T")[0];
 
       if (!acc[dateKey]) {
@@ -108,18 +87,11 @@ export function ExpenseChart({
     <Card>
       <CardHeader className="flex flex-col space-y-4 pb-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <div className="space-y-1">
-          <CardTitle className="text-xl font-semibold">
-            Expense Trends
-          </CardTitle>
-          <CardDescription>
-            Track your spending patterns over time
-          </CardDescription>
+          <CardTitle className="text-xl font-semibold">Expense Trends</CardTitle>
+          <CardDescription>Track your spending patterns over time</CardDescription>
         </div>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger
-            className="w-[160px] rounded-lg"
-            aria-label="Select time range"
-          >
+        <Select value={timeRange} onValueChange={handleTimeRangeChange}>
+          <SelectTrigger className="w-[160px] rounded-lg" aria-label="Select time range">
             <SelectValue placeholder="Last 3 months" />
           </SelectTrigger>
           <SelectContent className="rounded-xl">
@@ -163,10 +135,7 @@ export function ExpenseChart({
         </div>
 
         {/* Chart */}
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
-        >
+        <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
           <AreaChart data={chartData}>
             <defs>
               <linearGradient id="fillTotal" x1="0" y1="0" x2="0" y2="1">
@@ -174,11 +143,7 @@ export function ExpenseChart({
                 <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke="#f0f0f0"
-            />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
             <XAxis
               dataKey="date"
               tickLine={false}
@@ -227,13 +192,7 @@ export function ExpenseChart({
                 />
               }
             />
-            <Area
-              dataKey="total"
-              type="monotone"
-              fill="url(#fillTotal)"
-              stroke="var(--color-total)"
-              strokeWidth={2}
-            />
+            <Area dataKey="total" type="monotone" fill="url(#fillTotal)" stroke="var(--color-total)" strokeWidth={2} />
           </AreaChart>
         </ChartContainer>
       </CardContent>
