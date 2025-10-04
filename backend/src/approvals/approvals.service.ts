@@ -289,7 +289,7 @@ export class ApprovalsService {
 
       switch (rule.ruleType) {
         case ApprovalRuleType.PERCENTAGE:
-          canApprove = await this.canApprovePercentage(userId);
+          canApprove = await this.canApprovePercentage(userId, rule);
           break;
 
         case ApprovalRuleType.SPECIFIC_APPROVER:
@@ -326,8 +326,29 @@ export class ApprovalsService {
     });
   }
 
-  private async canApprovePercentage(userId: string): Promise<boolean> {
-    // Check if user is a manager approver
+  private async canApprovePercentage(
+    userId: string,
+    rule: any,
+  ): Promise<boolean> {
+    // Get the rule with its approval steps
+    const ruleWithSteps = await this.prisma.approvalRule.findUnique({
+      where: { id: rule.id },
+      include: {
+        approvalSteps: true,
+      },
+    });
+
+    // If rule has approval steps defined, check if user is in those steps
+    if (
+      ruleWithSteps?.approvalSteps &&
+      ruleWithSteps.approvalSteps.length > 0
+    ) {
+      return ruleWithSteps.approvalSteps.some(
+        (step) => step.approverId === userId,
+      );
+    }
+
+    // Otherwise, fall back to checking if user is a manager approver
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { isManagerApprover: true },
@@ -376,19 +397,44 @@ export class ApprovalsService {
     }
 
     // Otherwise, check as percentage approver
-    return await this.canApprovePercentage(userId);
+    return await this.canApprovePercentage(userId, rule);
   }
 
   private async isPercentageThresholdMet(
     expense: any,
     rule: any,
   ): Promise<boolean> {
-    const approverManagers = await this.getApproverManagers(expense.companyId);
+    // Get the rule with its approval steps
+    const ruleWithSteps = await this.prisma.approvalRule.findUnique({
+      where: { id: rule.id },
+      include: {
+        approvalSteps: true,
+      },
+    });
+
     const approvedCount = expense.approvalActions.filter(
       (action: any) => action.status === ApprovalStatus.APPROVED,
     ).length;
 
-    const approvalPercentage = (approvedCount / approverManagers.length) * 100;
+    let totalApprovers: number;
+
+    // If rule has approval steps, use those as the total count
+    if (
+      ruleWithSteps?.approvalSteps &&
+      ruleWithSteps.approvalSteps.length > 0
+    ) {
+      totalApprovers = ruleWithSteps.approvalSteps.length;
+    } else {
+      // Otherwise, use manager approvers count
+      const approverManagers = await this.getApproverManagers(
+        expense.companyId,
+      );
+      totalApprovers = approverManagers.length;
+    }
+
+    if (totalApprovers === 0) return false;
+
+    const approvalPercentage = (approvedCount / totalApprovers) * 100;
     return approvalPercentage >= (rule.percentageThreshold || 0);
   }
 
@@ -621,11 +667,33 @@ export class ApprovalsService {
       }
 
       case ApprovalRuleType.PERCENTAGE: {
-        const approverManagers = await this.getApproverManagers(
-          expense.companyId,
-        );
-        const approvalPercentage =
-          (approvedCount / approverManagers.length) * 100;
+        // Get the rule with its approval steps
+        const ruleWithSteps = await this.prisma.approvalRule.findUnique({
+          where: { id: rule.id },
+          include: {
+            approvalSteps: true,
+          },
+        });
+
+        let totalApprovers: number;
+
+        // If rule has approval steps, use those as the total count
+        if (
+          ruleWithSteps?.approvalSteps &&
+          ruleWithSteps.approvalSteps.length > 0
+        ) {
+          totalApprovers = ruleWithSteps.approvalSteps.length;
+        } else {
+          // Otherwise, use manager approvers count
+          const approverManagers = await this.getApproverManagers(
+            expense.companyId,
+          );
+          totalApprovers = approverManagers.length;
+        }
+
+        if (totalApprovers === 0) return false;
+
+        const approvalPercentage = (approvedCount / totalApprovers) * 100;
         return approvalPercentage >= (rule.percentageThreshold || 0);
       }
 
@@ -635,11 +703,33 @@ export class ApprovalsService {
         );
 
       case ApprovalRuleType.HYBRID: {
-        const approverManagers = await this.getApproverManagers(
-          expense.companyId,
-        );
-        const approvalPercentage =
-          (approvedCount / approverManagers.length) * 100;
+        // Get the rule with its approval steps
+        const ruleWithSteps = await this.prisma.approvalRule.findUnique({
+          where: { id: rule.id },
+          include: {
+            approvalSteps: true,
+          },
+        });
+
+        let totalApprovers: number;
+
+        // If rule has approval steps, use those as the total count
+        if (
+          ruleWithSteps?.approvalSteps &&
+          ruleWithSteps.approvalSteps.length > 0
+        ) {
+          totalApprovers = ruleWithSteps.approvalSteps.length;
+        } else {
+          // Otherwise, use manager approvers count
+          const approverManagers = await this.getApproverManagers(
+            expense.companyId,
+          );
+          totalApprovers = approverManagers.length;
+        }
+
+        if (totalApprovers === 0) return false;
+
+        const approvalPercentage = (approvedCount / totalApprovers) * 100;
         const percentageMet =
           approvalPercentage >= (rule.percentageThreshold || 0);
 
@@ -663,6 +753,9 @@ export class ApprovalsService {
           include: {
             approvalRules: {
               where: { isActive: true },
+              include: {
+                approvalSteps: true,
+              },
             },
           },
         },
@@ -706,10 +799,16 @@ export class ApprovalsService {
       }
 
       case ApprovalRuleType.PERCENTAGE: {
-        const approverManagers = await this.getApproverManagers(
-          expense.companyId,
-        );
-        approverIds = approverManagers.map((m) => m.id);
+        // Check if rule has approval steps defined
+        if (rule.approvalSteps && rule.approvalSteps.length > 0) {
+          approverIds = rule.approvalSteps.map((step: any) => step.approverId);
+        } else {
+          // Otherwise, notify all manager approvers
+          const approverManagers = await this.getApproverManagers(
+            expense.companyId,
+          );
+          approverIds = approverManagers.map((m) => m.id);
+        }
         break;
       }
 
@@ -720,9 +819,18 @@ export class ApprovalsService {
         break;
 
       case ApprovalRuleType.HYBRID: {
-        const managers = await this.getApproverManagers(expense.companyId);
-        approverIds = managers.map((m) => m.id);
-        if (rule.specificApproverId) {
+        // Check if rule has approval steps defined
+        if (rule.approvalSteps && rule.approvalSteps.length > 0) {
+          approverIds = rule.approvalSteps.map((step: any) => step.approverId);
+        } else {
+          // Otherwise, notify all manager approvers
+          const managers = await this.getApproverManagers(expense.companyId);
+          approverIds = managers.map((m) => m.id);
+        }
+        if (
+          rule.specificApproverId &&
+          !approverIds.includes(rule.specificApproverId)
+        ) {
           approverIds.push(rule.specificApproverId);
         }
         break;
