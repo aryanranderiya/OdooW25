@@ -11,42 +11,51 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 import { CardIcon } from "./ui/icons";
+import { ROUTES } from "@/lib/constants";
+import { CheckCheck } from "lucide-react";
 
 export function DasSidebar() {
   const links = [
     {
       label: "Dashboard",
-      href: "/dashboard",
+      href: ROUTES.DASHBOARD,
       icon: (
         <IconDashboard className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
     {
       label: "List Expenses",
-      href: "/dashboard/expenses",
+      href: ROUTES.EXPENSES,
       icon: (
         <IconReceipt className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
     {
       label: "Create Expense",
-      href: "/dashboard/expenses/create",
+      href: ROUTES.CREATE_EXPENSE,
       icon: (
         <IconPlus className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
     {
       label: "Users",
-      href: "/dashboard/admin/users",
+      href: ROUTES.USERS,
       icon: (
         <IconUsers className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
     {
       label: "Settings",
-      href: "/dashboard/admin/settings",
+      href: ROUTES.SETTINGS,
       icon: (
         <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+      ),
+    },
+    {
+      label: "Approval",
+      href: ROUTES.ADMIN,
+      icon: (
+        <CheckCheck className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
   ];

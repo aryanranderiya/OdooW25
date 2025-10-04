@@ -48,11 +48,14 @@ export function CurrencySelect({
     [allCurrencies]
   );
 
-  const otherCurrencies = useMemo(
-    () =>
-      filteredCurrencies.filter((c) => !POPULAR_CURRENCIES.includes(c.code)),
-    [filteredCurrencies]
-  );
+  const otherCurrencies = useMemo(() => {
+    if (searchQuery) {
+      return filteredCurrencies;
+    }
+    return filteredCurrencies.filter(
+      (c) => !POPULAR_CURRENCIES.includes(c.code)
+    );
+  }, [searchQuery, filteredCurrencies]);
 
   const selectedCurrency = allCurrencies.find((c) => c.code === value);
 

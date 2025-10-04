@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Expense, ExpenseStatus, ExpenseSummary } from "@/lib/types/expense";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { ROUTES } from "@/lib/constants";
 import { useExpenses } from "@/hooks/use-expenses";
 import { AuthGuard } from "@/components/auth-guard";
 
@@ -182,12 +183,12 @@ function ExpensePageContent() {
               <Upload className="h-4 w-4" />
               Upload Receipt
             </Button>
-            <Button asChild>
-              <Link href="/dashboard/expenses/new">
+            <Link href="/expenses/create">
+              <Button asChild>
                 <Plus className="h-4 w-4" />
                 New Expense
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </div>
         </div>
 
