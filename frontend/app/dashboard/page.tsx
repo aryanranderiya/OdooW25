@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { AuthGuard } from "@/components/auth-guard";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,9 +9,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/lib/constants";
 
 function DashboardContent() {
-  const { user, company, logout } = useAuth();
+  const { user, company } = useAuth();
   const router = useRouter();
 
   return (
