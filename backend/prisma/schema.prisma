@@ -64,6 +64,7 @@ model User {
   approvalSteps           ApprovalStep[]
   specificApproverRules   ApprovalRule[]    @relation("SpecificApprover")
   notifications           Notification[]
+  uploadedReceipts        Receipt[]
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
 
@@ -144,11 +145,14 @@ model Receipt {
   extractedDate     DateTime?
   extractedVendor   String?
   extractedCategory String?
-  expenseId         String
-  expense           Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  expenseId         String?
+  expense           Expense? @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  uploadedById      String
+  uploadedBy        User     @relation(fields: [uploadedById], references: [id])
   uploadedAt        DateTime @default(now())
 
   @@index([expenseId])
+  @@index([uploadedById])
 }
 
 model ApprovalRule {
