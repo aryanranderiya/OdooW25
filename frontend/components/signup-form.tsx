@@ -19,20 +19,27 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Check, ChevronsUpDown } from "lucide-react";
 import countries from "world-countries";
 
-// Transform country data for our select component
+// Transform country data for combobox
 const countryOptions = countries
   .map((country) => ({
-    value: country.cca2, // 2-letter country code
+    value: country.name.common, // Full country name
     label: country.name.common,
     flag: country.flag,
   }))
@@ -45,6 +52,7 @@ export function SignupForm({
   const { signup } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -151,25 +159,70 @@ export function SignupForm({
 
               <Field>
                 <FieldLabel htmlFor="country">Country</FieldLabel>
-                <Select
-                  value={selectedCountry}
-                  onValueChange={setSelectedCountry}
-                  disabled={isLoading}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select your country" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[50vh]">
-                    {countryOptions.map((country) => (
-                      <SelectItem key={country.value} value={country.value}>
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={open}
+                      className="w-full justify-between"
+                      disabled={isLoading}
+                    >
+                      {selectedCountry ? (
                         <span className="flex items-center gap-2">
-                          <span className="text-2xl">{country.flag}</span>
-                          <span>{country.label}</span>
+                          <span className="text-xl">
+                            {
+                              countryOptions.find(
+                                (c) => c.value === selectedCountry
+                              )?.flag
+                            }
+                          </span>
+                          <span>{selectedCountry}</span>
                         </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      ) : (
+                        "Select your country..."
+                      )}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search country..." />
+                      <CommandList>
+                        <CommandEmpty>No country found.</CommandEmpty>
+                        <CommandGroup>
+                          {countryOptions.map((country) => (
+                            <CommandItem
+                              key={country.value}
+                              value={country.value}
+                              onSelect={(currentValue) => {
+                                setSelectedCountry(
+                                  currentValue === selectedCountry
+                                    ? ""
+                                    : currentValue
+                                );
+                                setOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedCountry === country.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              <span className="flex items-center gap-2">
+                                <span className="text-xl">{country.flag}</span>
+                                <span>{country.label}</span>
+                              </span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </Field>
 
               <Field>
