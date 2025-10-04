@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
+import { ROUTES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -92,7 +93,7 @@ export function LoginForm({
                 <FieldDescription className="text-center">
                   Don&apos;t have an account?{" "}
                   <a
-                    href="/signup"
+                    href={ROUTES.SIGNUP}
                     className="underline underline-offset-4 hover:text-primary"
                   >
                     Sign up

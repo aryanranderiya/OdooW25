@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { authApi } from "@/lib/auth-api";
+import { ROUTES } from "@/lib/constants";
 import type { User, Company, SignupData, LoginData } from "@/types/user";
 
 interface AuthContextType {
@@ -33,9 +34,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (
       !isLoading &&
       user &&
-      (pathname === "/login" || pathname === "/signup")
+      (pathname === ROUTES.LOGIN || pathname === ROUTES.SIGNUP)
     ) {
-      router.push("/dashboard");
+      router.push(ROUTES.DASHBOARD);
     }
   }, [user, isLoading, pathname, router]);
 
@@ -57,26 +58,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = await authApi.login(data);
     setUser(response.user);
     setCompany(response.company);
-    router.push("/dashboard");
+    router.push(ROUTES.DASHBOARD);
   };
 
   const signup = async (data: SignupData) => {
     const response = await authApi.signup(data);
     setUser(response.user);
     setCompany(response.company);
-    router.push("/dashboard");
+    router.push(ROUTES.DASHBOARD);
   };
 
   const logout = async () => {
     await authApi.logout();
     setUser(null);
     setCompany(null);
-    router.push("/login");
+    router.push(ROUTES.LOGIN);
   };
 
   const redirectIfAuthenticated = () => {
     if (!isLoading && user) {
-      router.push("/dashboard");
+      router.push(ROUTES.DASHBOARD);
     }
   };
 
