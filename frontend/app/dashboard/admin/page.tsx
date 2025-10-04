@@ -23,7 +23,7 @@ export default function Page() {
   const [editingRule, setEditingRule] = useState<ApprovalRule | null>(null);
   const { toast } = useToast();
 
-  const loadData = useCallback(async () => {
+  const loadData = async () => {
     setIsLoading(true);
     try {
       const [rules, approvals] = await Promise.all([
@@ -42,11 +42,12 @@ export default function Page() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  };
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCreateRule = () => {
     setEditingRule(null);
@@ -92,7 +93,9 @@ export default function Page() {
           description: "Approval rule updated successfully",
         });
       } else {
-        const created = await approvalApi.createRule(data);
+        const created = await approvalApi.createRule(
+          data as CreateApprovalRuleDto
+        );
         setApprovalRules((prev) => [...prev, created]);
         toast({
           title: "Success",
