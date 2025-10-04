@@ -745,22 +745,22 @@ export default function ExpenseForm({
                             )}
                           </p>
                           {formData.originalCurrency !== companyCurrency && (
-                            <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                            <div className="flex items-center gap-2 p-3 bg-zinc-50 border border-zinc-200 rounded-lg">
                               <div className="flex-1">
                                 {isConverting ? (
-                                  <p className="text-sm text-blue-600 font-medium">
+                                  <p className="text-sm text-zinc-600 font-medium">
                                     Converting...
                                   </p>
                                 ) : convertedAmount !== null ? (
                                   <>
-                                    <p className="text-sm text-blue-900 font-semibold">
+                                    <p className="text-sm text-zinc-900 font-semibold">
                                       ≈{" "}
                                       {formatCurrency(
                                         convertedAmount,
                                         companyCurrency
                                       )}
                                     </p>
-                                    <p className="text-xs text-blue-600 mt-0.5">
+                                    <p className="text-xs text-zinc-500 mt-0.5">
                                       In {companyCurrency} (Company Currency)
                                     </p>
                                   </>
