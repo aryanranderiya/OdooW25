@@ -95,31 +95,7 @@ export default function ExpenseForm({
   const [isConverting, setIsConverting] = useState(false);
   const [showOcrCorrection, setShowOcrCorrection] = useState(false);
 
-  useEffect(() => {
-    if (ocrState.data) {
-      setFormData((prev) => ({
-        ...prev,
-        originalAmount: ocrState.data?.amount || prev.originalAmount,
-        title: ocrState.data?.vendor
-          ? `Expense from ${ocrState.data.vendor}`
-          : prev.title,
-        expenseDate: ocrState.data?.date
-          ? new Date(ocrState.data.date)
-          : prev.expenseDate,
-      }));
 
-      if (ocrState.data.category) {
-        const matchingCategory = categories.find((cat) =>
-          cat.name
-            .toLowerCase()
-            .includes(ocrState.data?.category?.toLowerCase() || "")
-        );
-        if (matchingCategory) {
-          setFormData((prev) => ({ ...prev, categoryId: matchingCategory.id }));
-        }
-      }
-    }
-  }, [ocrState.data, categories]);
 
   useEffect(() => {
     async function performConversion() {
@@ -152,17 +128,43 @@ export default function ExpenseForm({
   const isReadOnly = isViewMode;
   const showSubmitButton = isCreateMode;
 
-  const handleOcrFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOcrFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedOcrFile(file);
       resetOcr();
+      await uploadAndProcess(file);
     }
   };
 
-  const handleOcrProcess = async () => {
-    if (!selectedOcrFile) return;
-    await uploadAndProcess(selectedOcrFile);
+  const handleInsertOcrData = () => {
+    if (!ocrState.data) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      originalAmount: ocrState.data?.amount || prev.originalAmount,
+      title: ocrState.data?.vendor
+        ? `Expense from ${ocrState.data.vendor}`
+        : prev.title,
+      expenseDate: ocrState.data?.date
+        ? new Date(ocrState.data.date)
+        : prev.expenseDate,
+    }));
+
+    if (ocrState.data.category) {
+      const matchingCategory = categories.find((cat) =>
+        cat.name
+          .toLowerCase()
+          .includes(ocrState.data?.category?.toLowerCase() || "")
+      );
+      if (matchingCategory) {
+        setFormData((prev) => ({ ...prev, categoryId: matchingCategory.id }));
+      }
+    }
+
+    toast.success("OCR data inserted into form!");
   };
 
   const handleOcrCorrection = (field: string, value: any) => {
@@ -393,7 +395,7 @@ export default function ExpenseForm({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <div className="border-2 border-dashed border-zinc-300 rounded-lg p-6 text-center hover:border-zinc-400 transition-colors">
                   <input
                     type="file"
                     accept="image/*,.pdf"
@@ -405,72 +407,80 @@ export default function ExpenseForm({
                     htmlFor="ocr-receipt-upload"
                     className="cursor-pointer"
                   >
-                    <Upload className="h-10 w-10 mx-auto text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-600">
+                    <Upload className="h-10 w-10 mx-auto text-zinc-400 mb-2" />
+                    <p className="text-sm text-zinc-600 font-medium">
                       Click to upload receipt or drag and drop
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      PNG, JPG, PDF up to 10MB
+                    <p className="text-xs text-zinc-500 mt-1">
+                      PNG, JPG, PDF up to 10MB · OCR processes automatically
                     </p>
                   </label>
                 </div>
 
                 {selectedOcrFile && (
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg border border-zinc-200">
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm font-medium">
+                      <FileText className="h-4 w-4 text-zinc-500" />
+                      <span className="text-sm font-medium text-zinc-900">
                         {selectedOcrFile.name}
                       </span>
                     </div>
-                    <Button
-                      onClick={handleOcrProcess}
-                      disabled={ocrState.isProcessing}
-                      size="sm"
-                    >
-                      {ocrState.isProcessing ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    {ocrState.isProcessing && (
+                      <div className="flex items-center gap-2 text-zinc-600">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm font-medium">
                           Processing...
-                        </>
-                      ) : (
-                        "Process with OCR"
-                      )}
-                    </Button>
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {/* OCR Results */}
                 {ocrState.data && (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
-                      <span className="font-medium">
-                        OCR Processing Complete
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        Confidence: {Math.round(ocrState.confidence * 100)}%
-                      </span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        <span className="font-medium text-zinc-900">
+                          OCR Processing Complete
+                        </span>
+                        <span className="text-sm text-zinc-500">
+                          Confidence: {Math.round(ocrState.confidence * 100)}%
+                        </span>
+                      </div>
+                      <Button
+                        onClick={handleInsertOcrData}
+                        size="sm"
+                        className="gap-2"
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                        Insert Data
+                      </Button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-zinc-50 border border-zinc-200 rounded-lg">
                       <div>
-                        <Label className="text-sm font-medium">
+                        <Label className="text-sm font-medium text-zinc-500">
                           Extracted Amount
                         </Label>
-                        <p className="text-lg font-semibold">
+                        <p className="text-lg font-semibold text-zinc-900">
                           ${ocrState.data.amount?.toFixed(2) || "Not found"}
                         </p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium">Vendor</Label>
-                        <p className="text-lg font-semibold">
+                        <Label className="text-sm font-medium text-zinc-500">
+                          Vendor
+                        </Label>
+                        <p className="text-lg font-semibold text-zinc-900">
                           {ocrState.data.vendor || "Not found"}
                         </p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium">Date</Label>
-                        <p className="text-lg font-semibold">
+                        <Label className="text-sm font-medium text-zinc-500">
+                          Date
+                        </Label>
+                        <p className="text-lg font-semibold text-zinc-900">
                           {ocrState.data.date
                             ? format(
                                 new Date(ocrState.data.date),
@@ -480,8 +490,10 @@ export default function ExpenseForm({
                         </p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium">Category</Label>
-                        <p className="text-lg font-semibold">
+                        <Label className="text-sm font-medium text-zinc-500">
+                          Category
+                        </Label>
+                        <p className="text-lg font-semibold text-zinc-900">
                           {ocrState.data.category || "Not found"}
                         </p>
                       </div>
