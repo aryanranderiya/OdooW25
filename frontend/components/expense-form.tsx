@@ -39,7 +39,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import ReceiptUploadModal from "./receipt-upload-modal";
 import StatusFlow from "./status-flow";
 import { useCreateExpense } from "@/hooks/use-expenses";
 import { useCategories } from "@/hooks/use-categories";
@@ -173,7 +172,7 @@ export default function ExpenseForm({
         description: formData.description,
         originalAmount: formData.originalAmount,
         originalCurrency: formData.originalCurrency,
-        expenseDate: formData.expenseDate.toISOString(),
+        expenseDate: formData.expenseDate,
         categoryId: formData.categoryId,
       });
       toast.success("Expense created successfully!");

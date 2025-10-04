@@ -17,7 +17,6 @@ import {
   DefaultValuePipe,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { UserId } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ExpensesService } from './expenses.service';
 import {
@@ -25,10 +24,6 @@ import {
   UpdateExpenseDto,
   UploadReceiptsDto,
 } from './dto/expense.dto';
-import type {
-  CreateExpenseRequest,
-  GetExpensesQuery,
-} from './types/expense.types';
 
 @Controller('expenses')
 @UseGuards(JwtAuthGuard)
@@ -38,17 +33,6 @@ export class ExpensesController {
   @Post()
   async create(@Body() createExpenseDto: CreateExpenseDto, @Request() req) {
     return this.expensesService.create(createExpenseDto, req.user.id);
-  }
-
-  // Legacy create method
-  @Post('legacy')
-  createLegacy(@UserId() userId: string, @Body() data: CreateExpenseRequest) {
-    // Convert expenseDate from string to Date
-    const createExpenseDto = {
-      ...data,
-      expenseDate: new Date(data.expenseDate),
-    };
-    return this.expensesService.create(createExpenseDto, userId);
   }
 
   @Post('upload-receipts')
@@ -97,32 +81,14 @@ export class ExpensesController {
     });
   }
 
-  // Legacy findAll method
-  @Get('legacy')
-  findAllLegacy(@UserId() userId: string, @Query() query: GetExpensesQuery) {
-    return this.expensesService.findAll({
-      page: 1,
-      limit: 10,
-      status: query.status,
-      category: undefined,
-      userId: userId,
-    });
-  }
-
   @Get('summary')
   async getSummary(@Request() req) {
     return this.expensesService.getExpenseSummary(req.user.id);
   }
 
   @Get('categories')
-  async getCategories(@Request() req) {
-    return this.expensesService.getCategories(req.user.id);
-  }
-
-  // Legacy getCategories method
-  @Get('categories/legacy')
-  getCategoriesLegacy(@UserId() userId: string) {
-    return this.expensesService.getCategories(userId);
+  getCategories() {
+    return this.expensesService.getCategories();
   }
 
   @Get('receipts/:receiptId/ocr-status')
@@ -137,12 +103,6 @@ export class ExpensesController {
       throw new NotFoundException('Expense not found');
     }
     return expense;
-  }
-
-  // Legacy findOne method
-  @Get('legacy/:id')
-  findOneLegacy(@UserId() userId: string, @Param('id') id: string) {
-    return this.expensesService.findOne(id, userId);
   }
 
   @Patch(':id')

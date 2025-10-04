@@ -452,15 +452,12 @@ export class ExpensesService {
     };
   }
 
-  async getCategories(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    return this.prisma.category.findMany({
-      where: { companyId: user?.companyId },
+  async getCategories() {
+    const categories = await this.prisma.category.findMany({
       orderBy: { name: 'asc' },
     });
+
+    return categories;
   }
 
   async getReceiptOcrStatus(receiptId: string, userId: string) {
