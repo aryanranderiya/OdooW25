@@ -493,37 +493,6 @@ export class ExpensesService {
     };
   }
 
-  async correctOcrData(receiptId: string, correctionData: any, userId: string) {
-    const receipt = await this.prisma.receipt.findFirst({
-      where: {
-        id: receiptId,
-        expense: {
-          submitterId: userId,
-        },
-      },
-    });
-
-    if (!receipt) {
-      throw new NotFoundException('Receipt not found');
-    }
-
-    // Update receipt with corrected data
-    await this.prisma.receipt.update({
-      where: { id: receiptId },
-      data: {
-        extractedAmount: correctionData.amount || receipt.extractedAmount,
-        extractedDate: correctionData.date || receipt.extractedDate,
-        extractedVendor: correctionData.vendor || receipt.extractedVendor,
-        extractedCategory: correctionData.category || receipt.extractedCategory,
-      },
-    });
-
-    // Log the correction for improving OCR
-    await this.ocrService.handleOcrCorrection(receiptId, correctionData);
-
-    return { message: 'OCR data corrected successfully' };
-  }
-
   private calculateConvertedAmount(
     amount: number,
     fromCurrency: string,

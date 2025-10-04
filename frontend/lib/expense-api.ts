@@ -80,17 +80,6 @@ class ExpenseApiClient {
     return this.makeRequest(`/expenses/receipts/${receiptId}/ocr-status`);
   }
 
-  // Submit OCR corrections
-  async correctOcrData(receiptId: string, correctedData: Partial<OcrExtractedData>) {
-    return this.makeRequest(`/expenses/receipts/${receiptId}/correct-ocr`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(correctedData),
-    });
-  }
-
   // Create expense from OCR data
   async createExpenseFromReceipt(receiptId: string) {
     return this.makeRequest(`/expenses/create-from-receipt/${receiptId}`, {

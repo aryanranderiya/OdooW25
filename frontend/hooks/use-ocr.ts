@@ -13,7 +13,6 @@ export interface OcrState {
 export interface UseOcrReturn {
   ocrState: OcrState;
   uploadAndProcess: (file: File) => Promise<void>;
-  correctOcrData: (corrections: Partial<OcrExtractedData>) => Promise<void>;
   createExpenseFromReceipt: () => Promise<any>;
   resetOcr: () => void;
 }
@@ -147,28 +146,6 @@ export function useOcr(): UseOcrReturn {
     }));
   };
 
-  const correctOcrData = useCallback(
-    async (receiptId: string, corrections: Partial<OcrExtractedData>) => {
-      try {
-        await expenseApi.correctOcrData(receiptId, corrections);
-
-        // Update local state with corrections
-        setOcrState((prev) => ({
-          ...prev,
-          data: prev.data ? { ...prev.data, ...corrections } : null,
-        }));
-
-        // Re-validate with corrected data
-        if (ocrState.data) {
-          validateOcrResults({ ...ocrState.data, ...corrections });
-        }
-      } catch (error) {
-        console.error("Failed to submit OCR correction:", error);
-      }
-    },
-    [ocrState.data]
-  );
-
   const createExpenseFromReceipt = useCallback(async (receiptId: string) => {
     try {
       const expense = await expenseApi.createExpenseFromReceipt(receiptId);
@@ -185,8 +162,6 @@ export function useOcr(): UseOcrReturn {
   return {
     ocrState,
     uploadAndProcess,
-    correctOcrData: (corrections: Partial<OcrExtractedData>) =>
-      currentReceiptId ? correctOcrData(currentReceiptId, corrections) : Promise.resolve(),
     createExpenseFromReceipt: () => (currentReceiptId ? createExpenseFromReceipt(currentReceiptId) : Promise.reject(new Error("No receipt ID"))),
     resetOcr,
   };

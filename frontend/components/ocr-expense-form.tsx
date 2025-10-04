@@ -37,7 +37,7 @@ const mockCategories = [
 
 export default function OcrExpenseForm() {
   const router = useRouter();
-  const { ocrState, uploadAndProcess, correctOcrData, createExpenseFromReceipt, resetOcr } = useOcr();
+  const { ocrState, uploadAndProcess, createExpenseFromReceipt, resetOcr } = useOcr();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -85,17 +85,20 @@ export default function OcrExpenseForm() {
     }
   }, [ocrState.data]);
 
-  const handleOcrCorrection = async (field: string, value: any) => {
-    const corrections = { [field]: value };
-    await correctOcrData(corrections);
-
-    // Update form data as well
+  const handleOcrCorrection = (field: string, value: any) => {
+    // Update form data directly since we're not sending corrections to API anymore
     if (field === "amount") {
       setFormData((prev) => ({ ...prev, originalAmount: value }));
     } else if (field === "vendor") {
       setFormData((prev) => ({ ...prev, title: `Expense from ${value}` }));
     } else if (field === "date") {
       setFormData((prev) => ({ ...prev, expenseDate: value }));
+    } else if (field === "category") {
+      // Find matching category ID when category is corrected
+      const matchingCategory = mockCategories.find((cat) => cat.name.toLowerCase().includes(value?.toLowerCase() || ""));
+      if (matchingCategory) {
+        setFormData((prev) => ({ ...prev, categoryId: matchingCategory.id }));
+      }
     }
   };
 

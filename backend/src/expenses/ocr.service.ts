@@ -471,19 +471,4 @@ export class OcrService {
       warnings,
     };
   }
-
-  // Method to handle OCR corrections
-  handleOcrCorrection(receiptId: string, correctedData: any): any {
-    console.log(
-      `OCR correction received for receipt ${receiptId}:`,
-      correctedData,
-    );
-
-    return {
-      message: 'OCR correction recorded',
-      receiptId,
-      correctedData,
-      timestamp: new Date(),
-    };
-  }
 }

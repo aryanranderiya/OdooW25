@@ -43,7 +43,12 @@ export class ExpensesController {
   // Legacy create method
   @Post('legacy')
   createLegacy(@UserId() userId: string, @Body() data: CreateExpenseRequest) {
-    return this.expensesService.create(userId, data);
+    // Convert expenseDate from string to Date
+    const createExpenseDto = {
+      ...data,
+      expenseDate: new Date(data.expenseDate),
+    };
+    return this.expensesService.create(createExpenseDto, userId);
   }
 
   @Post('upload-receipts')
@@ -95,7 +100,13 @@ export class ExpensesController {
   // Legacy findAll method
   @Get('legacy')
   findAllLegacy(@UserId() userId: string, @Query() query: GetExpensesQuery) {
-    return this.expensesService.findAll(userId, query);
+    return this.expensesService.findAll({
+      page: 1,
+      limit: 10,
+      status: query.status,
+      category: undefined,
+      userId: userId,
+    });
   }
 
   @Get('summary')
@@ -119,19 +130,6 @@ export class ExpensesController {
     return this.expensesService.getReceiptOcrStatus(receiptId, req.user.id);
   }
 
-  @Post('receipts/:receiptId/correct-ocr')
-  async correctOcr(
-    @Param('receiptId') receiptId: string,
-    @Body() correctionData: any,
-    @Request() req,
-  ) {
-    return this.expensesService.correctOcrData(
-      receiptId,
-      correctionData,
-      req.user.id,
-    );
-  }
-
   @Get(':id')
   async findOne(@Param('id') id: string, @Request() req) {
     const expense = await this.expensesService.findOne(id, req.user.id);
@@ -144,7 +142,7 @@ export class ExpensesController {
   // Legacy findOne method
   @Get('legacy/:id')
   findOneLegacy(@UserId() userId: string, @Param('id') id: string) {
-    return this.expensesService.findOne(userId, id);
+    return this.expensesService.findOne(id, userId);
   }
 
   @Patch(':id')
