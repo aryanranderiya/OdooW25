@@ -9,14 +9,53 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangeRoleDto } from './dto/change-role.dto';
 import { AssignManagerDto } from './dto/assign-manager.dto';
+import { EmailService } from '../auth/email.service';
 import * as bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   private async hashPassword(password: string): Promise<string> {
     return await bcrypt.hash(password, 10);
+  }
+
+  private generateVerificationToken(): string {
+    return randomBytes(32).toString('hex');
+  }
+
+  private generateRandomPassword(): string {
+    // Generate a random password with letters, numbers, and special characters
+    const length = 12;
+    const charset =
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    let password = '';
+
+    // Ensure at least one character from each type
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numbers = '0123456789';
+    const specials = '!@#$%^&*';
+
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += specials[Math.floor(Math.random() * specials.length)];
+
+    // Fill the rest randomly
+    for (let i = 4; i < length; i++) {
+      password += charset[Math.floor(Math.random() * charset.length)];
+    }
+
+    // Shuffle the password
+    return password
+      .split('')
+      .sort(() => Math.random() - 0.5)
+      .join('');
   }
 
   async create(createUserDto: CreateUserDto, adminId: string) {
@@ -51,7 +90,15 @@ export class UsersService {
       }
     }
 
-    const passwordHash = await this.hashPassword(createUserDto.password);
+    // Generate random password if not provided
+    const generatedPassword =
+      createUserDto.password || this.generateRandomPassword();
+    const passwordHash = await this.hashPassword(generatedPassword);
+
+    // Generate email verification token
+    const verificationToken = this.generateVerificationToken();
+    const verificationExpires = new Date();
+    verificationExpires.setHours(verificationExpires.getHours() + 24);
 
     const user = await this.prisma.user.create({
       data: {
@@ -62,12 +109,33 @@ export class UsersService {
         companyId: admin.companyId,
         managerId: createUserDto.managerId,
         isManagerApprover: createUserDto.isManagerApprover || false,
+        emailVerificationToken: verificationToken,
+        emailVerificationExpires: verificationExpires,
       },
       include: {
         manager: { select: { id: true, name: true, email: true } },
         company: true,
       },
     });
+
+    // Send email with credentials and verification email
+    try {
+      await this.emailService.sendUserCredentialsEmail(
+        user.email,
+        user.name,
+        generatedPassword,
+        user.company.name,
+      );
+
+      await this.emailService.sendVerificationEmail(
+        user.email,
+        user.name,
+        verificationToken,
+      );
+    } catch (error) {
+      console.error('Failed to send user emails:', error);
+      // Don't throw error here to avoid rolling back user creation
+    }
 
     return {
       id: user.id,
