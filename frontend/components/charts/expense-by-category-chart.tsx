@@ -1,6 +1,5 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
 import { Pie, PieChart } from "recharts";
 
 import {
@@ -18,8 +17,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Expense } from "@/lib/types/expense";
-import { useMemo } from "react";
 import { formatCurrency } from "@/lib/utils";
+import { useMemo } from "react";
 
 interface ExpenseByCategoryChartProps {
   expenses: Expense[];
@@ -67,7 +66,7 @@ export function ExpenseByCategoryChart({
       },
     };
 
-    chartData.forEach((item, index) => {
+    chartData.forEach((item) => {
       config[item.category] = {
         label: item.category,
         color: item.fill,

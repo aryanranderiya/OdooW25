@@ -15,11 +15,10 @@ import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Expense, ExpenseStatus } from "@/lib/types/expense";
-import { useMemo } from "react";
 import { formatCurrency } from "@/lib/utils";
+import { useMemo } from "react";
 
 interface ExpenseByStatusChartProps {
   expenses: Expense[];
