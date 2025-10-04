@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
+import { NotificationBell } from "@/components/notification-bell";
 
 export default function Layout({
   children,
@@ -65,6 +66,7 @@ export const Dashboard = ({ children }: { children: React.ReactNode }) => {
           </div>
 
           <div className="flex items-center gap-4">
+            <NotificationBell />
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

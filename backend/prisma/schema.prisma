@@ -63,6 +63,7 @@ model User {
   approvalRequests        ApprovalRequest[]
   approvalSteps           ApprovalStep[]
   specificApproverRules   ApprovalRule[]    @relation("SpecificApprover")
+  notifications           Notification[]
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
 
@@ -205,4 +206,30 @@ model ApprovalRequest {
   @@index([expenseId])
   @@index([approverId])
   @@index([status])
+}
+
+enum NotificationType {
+  EXPENSE_SUBMITTED
+  EXPENSE_APPROVED
+  EXPENSE_REJECTED
+  APPROVAL_REQUEST
+  EXPENSE_UPDATED
+  SYSTEM
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  read      Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
 }
