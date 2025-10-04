@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DollarSign } from "lucide-react";
 
 function DashboardContent() {
   const { user, company, logout } = useAuth();
