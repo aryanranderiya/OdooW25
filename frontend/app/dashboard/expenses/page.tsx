@@ -24,78 +24,8 @@ import {
 import { Expense, ExpenseStatus, ExpenseSummary } from "@/lib/types/expense";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { ROUTES } from "@/lib/constants";
-
-// Mock data - replace with actual API calls
-const mockExpenses: Expense[] = [
-  {
-    id: "1",
-    title: "Restaurant Bill",
-    description: "Team lunch meeting",
-    originalAmount: 5000,
-    originalCurrency: "INR",
-    convertedAmount: 5000,
-    companyCurrency: "INR",
-    exchangeRate: 1,
-    expenseDate: new Date("2024-10-01"),
-    status: ExpenseStatus.DRAFT,
-    submitterId: "1",
-    submitter: { name: "John Doe", email: "john@company.com" },
-    categoryId: "1",
-    category: { name: "Food" },
-    receipts: [],
-    createdAt: new Date("2024-10-01"),
-    updatedAt: new Date("2024-10-01"),
-  },
-  {
-    id: "2",
-    title: "Travel Expense",
-    description: "Client meeting transportation",
-    originalAmount: 2500,
-    originalCurrency: "INR",
-    convertedAmount: 2500,
-    companyCurrency: "INR",
-    exchangeRate: 1,
-    expenseDate: new Date("2024-09-28"),
-    status: ExpenseStatus.PENDING_APPROVAL,
-    submitterId: "1",
-    submitter: { name: "John Doe", email: "john@company.com" },
-    categoryId: "2",
-    category: { name: "Travel" },
-    receipts: [],
-    submittedAt: new Date("2024-09-29"),
-    createdAt: new Date("2024-09-28"),
-    updatedAt: new Date("2024-09-29"),
-    approvalRequests: [
-      {
-        id: "1",
-        approver: { name: "Sarah Manager" },
-        status: "PENDING",
-        actionDate: undefined,
-      },
-    ],
-  },
-  {
-    id: "3",
-    title: "Office Supplies",
-    description: "Stationery for team",
-    originalAmount: 1500,
-    originalCurrency: "INR",
-    convertedAmount: 1500,
-    companyCurrency: "INR",
-    exchangeRate: 1,
-    expenseDate: new Date("2024-09-25"),
-    status: ExpenseStatus.APPROVED,
-    submitterId: "1",
-    submitter: { name: "John Doe", email: "john@company.com" },
-    categoryId: "3",
-    category: { name: "Office" },
-    receipts: [],
-    submittedAt: new Date("2024-09-26"),
-    approvedAt: new Date("2024-09-27"),
-    createdAt: new Date("2024-09-25"),
-    updatedAt: new Date("2024-09-27"),
-  },
-];
+import { useExpenses } from "@/hooks/use-expenses";
+import { AuthGuard } from "@/components/auth-guard";
 
 function getStatusBadge(status: ExpenseStatus) {
   switch (status) {
@@ -189,12 +119,12 @@ function StatCard({
   );
 }
 
-export default function ExpensesPage() {
-  const [expenses, setExpenses] = useState<Expense[]>(mockExpenses);
+function ExpensePageContent() {
+  const { data: expenses = [], error, isLoading } = useExpenses();
   const [summary, setSummary] = useState<ExpenseSummary>({
-    toSubmit: { count: 0, totalAmount: 0, currency: "INR" },
-    waitingApproval: { count: 0, totalAmount: 0, currency: "INR" },
-    approved: { count: 0, totalAmount: 0, currency: "INR" },
+    toSubmit: { count: 0, totalAmount: 0, currency: "USD" },
+    waitingApproval: { count: 0, totalAmount: 0, currency: "USD" },
+    approved: { count: 0, totalAmount: 0, currency: "USD" },
   });
 
   useEffect(() => {
@@ -218,14 +148,22 @@ export default function ExpensesPage() {
         return acc;
       },
       {
-        toSubmit: { count: 0, totalAmount: 0, currency: "INR" },
-        waitingApproval: { count: 0, totalAmount: 0, currency: "INR" },
-        approved: { count: 0, totalAmount: 0, currency: "INR" },
+        toSubmit: { count: 0, totalAmount: 0, currency: "USD" },
+        waitingApproval: { count: 0, totalAmount: 0, currency: "USD" },
+        approved: { count: 0, totalAmount: 0, currency: "USD" },
       }
     );
 
     setSummary(newSummary);
   }, [expenses]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+        <p className="text-red-500">Failed to load expenses</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -245,12 +183,12 @@ export default function ExpensesPage() {
               <Upload className="h-4 w-4" />
               Upload Receipt
             </Button>
-            <Button asChild>
-              <Link href={ROUTES.CREATE_EXPENSE}>
+            <Link href="/expenses/create">
+              <Button asChild>
                 <Plus className="h-4 w-4" />
                 New Expense
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -282,67 +220,85 @@ export default function ExpensesPage() {
         {/* Expenses Table */}
         <Card>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Paid By</TableHead>
-                  <TableHead>Remarks</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {expenses.map((expense) => (
-                  <TableRow key={expense.id}>
-                    <TableCell className="py-4">
-                      <div className="flex items-center gap-3">
-                        <User className="h-4 w-4 text-zinc-400" />
+            {isLoading ? (
+              <div className="p-8 text-center">Loading expenses...</div>
+            ) : expenses.length === 0 ? (
+              <div className="p-8 text-center">
+                <p className="text-muted-foreground mb-4">No expenses found</p>
+                <Button asChild>
+                  <Link href="/dashboard/expenses/new">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create your first expense
+                  </Link>
+                </Button>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {expenses.map((expense: Expense) => (
+                    <TableRow key={expense.id}>
+                      <TableCell className="py-4">
+                        <div className="flex items-center gap-3">
+                          <User className="h-4 w-4 text-zinc-400" />
+                          <div>
+                            <div className="font-medium text-zinc-900">
+                              {expense.submitter.name}
+                            </div>
+                            <div className="text-sm text-zinc-500">
+                              {expense.submitter.email}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-4">
                         <div>
                           <div className="font-medium text-zinc-900">
-                            {expense.submitter.name}
+                            {expense.title}
                           </div>
-                          <div className="text-sm text-zinc-500">
-                            {expense.submitter.email}
-                          </div>
+                          {expense.description && (
+                            <div className="text-sm text-zinc-500">
+                              {expense.description}
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <div>
-                        <div className="font-medium text-zinc-900">
-                          {expense.title}
-                        </div>
-                        {expense.description && (
-                          <div className="text-sm text-zinc-500">
-                            {expense.description}
-                          </div>
+                      </TableCell>
+                      <TableCell>{formatDate(expense.expenseDate)}</TableCell>
+                      <TableCell>{expense.category?.name || "-"}</TableCell>
+                      <TableCell>
+                        {formatCurrency(
+                          expense.originalAmount,
+                          expense.originalCurrency
                         )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatDate(expense.expenseDate)}</TableCell>
-                    <TableCell>{expense.category?.name || "-"}</TableCell>
-                    <TableCell>Personal Card</TableCell>
-                    <TableCell>-</TableCell>
-                    <TableCell>
-                      {formatCurrency(
-                        expense.originalAmount,
-                        expense.originalCurrency
-                      )}
-                    </TableCell>
-                    <TableCell className="py-4">
-                      {getStatusBadge(expense.status)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        {getStatusBadge(expense.status)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function ExpensesPage() {
+  return (
+    <AuthGuard>
+      <ExpensePageContent />
+    </AuthGuard>
   );
 }

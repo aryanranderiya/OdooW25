@@ -24,6 +24,7 @@ import {
   ExpenseFormData,
   ExpenseStatus,
   PAYMENT_METHODS,
+  Category,
 } from "@/lib/types/expense";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -31,6 +32,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ReceiptUploadModal from "./receipt-upload-modal";
 import StatusFlow from "./status-flow";
+import { useCreateExpense } from "@/hooks/use-expenses";
+import { useCategories } from "@/hooks/use-categories";
+import { toast } from "sonner";
 
 interface ExpenseFormProps {
   initialData?: Partial<ExpenseFormData>;
@@ -44,24 +48,16 @@ interface ExpenseFormProps {
   };
 }
 
-const mockCategories = [
-  { id: "1", name: "Food & Dining" },
-  { id: "2", name: "Travel & Transportation" },
-  { id: "3", name: "Office Supplies" },
-  { id: "4", name: "Software & Technology" },
-  { id: "5", name: "Marketing & Events" },
-  { id: "6", name: "Professional Services" },
-];
-
 export default function ExpenseForm({
   initialData,
   isEditing = false,
-  expenseId,
   currentStatus = ExpenseStatus.DRAFT,
   approvalInfo,
 }: ExpenseFormProps) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { categories, isLoading: categoriesLoading } = useCategories();
+  const createExpense = useCreateExpense();
+
   const [formData, setFormData] = useState<ExpenseFormData>({
     title: initialData?.title || "",
     description: initialData?.description || "",
@@ -80,16 +76,22 @@ export default function ExpenseForm({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setIsSubmitting(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log("Submitting expense:", formData);
+      await createExpense.trigger({
+        title: formData.title,
+        description: formData.description,
+        originalAmount: formData.originalAmount,
+        originalCurrency: formData.originalCurrency,
+        expenseDate: formData.expenseDate.toISOString(),
+        categoryId: formData.categoryId,
+      });
+      toast.success("Expense created successfully!");
       router.push("/dashboard/expenses");
-    } catch (error) {
-      console.error("Error submitting expense:", error);
-    } finally {
-      setIsSubmitting(false);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to create expense";
+      toast.error(errorMessage);
     }
   };
 
@@ -184,13 +186,19 @@ export default function ExpenseForm({
                     onValueChange={(value) =>
                       setFormData((prev) => ({ ...prev, categoryId: value }))
                     }
-                    disabled={isReadOnly}
+                    disabled={isReadOnly || categoriesLoading}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue
+                        placeholder={
+                          categoriesLoading
+                            ? "Loading categories..."
+                            : "Select category"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockCategories.map((category) => (
+                      {categories.map((category: Category) => (
                         <SelectItem
                           key={category.id}
                           value={category.id}
@@ -323,12 +331,12 @@ export default function ExpenseForm({
               <Button
                 type="submit"
                 disabled={
-                  isSubmitting ||
+                  createExpense.isMutating ||
                   !formData.title ||
                   formData.originalAmount <= 0
                 }
               >
-                {isSubmitting ? "Submitting..." : "Submit Expense"}
+                {createExpense.isMutating ? "Submitting..." : "Submit Expense"}
               </Button>
             </div>
           )}
