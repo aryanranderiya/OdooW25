@@ -11,7 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ExpenseStatus } from "@/lib/types/expense";
+import { ExpenseStatus, Expense } from "@/lib/types/expense";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Eye, Plus } from "lucide-react";
@@ -148,7 +148,7 @@ export default function ExpenseList({
       )}
       <CardContent>
         <div className="space-y-4">
-          {expenses.map((expense) => (
+          {expenses.map((expense: Expense) => (
             <div
               key={expense.id}
               className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer group"
@@ -178,9 +178,11 @@ export default function ExpenseList({
                   </div>
                   <Badge
                     variant="secondary"
-                    className={`${statusColors[expense.status]} text-white`}
+                    className={`${
+                      statusColors[expense.status as ExpenseStatus]
+                    } text-white`}
                   >
-                    {statusLabels[expense.status]}
+                    {statusLabels[expense.status as ExpenseStatus]}
                   </Badge>
                 </div>
                 <Eye className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
