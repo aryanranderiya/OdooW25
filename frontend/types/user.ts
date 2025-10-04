@@ -12,6 +12,14 @@ export interface User {
     email: string;
     role: string;
   };
+  employees?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  }[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Company {
@@ -50,8 +58,8 @@ export interface CreateUserData {
 
 export interface UpdateUserData {
   name?: string;
-  email?: string;
-  password?: string;
+  role?: "ADMIN" | "MANAGER" | "EMPLOYEE";
+  managerId?: string;
   isManagerApprover?: boolean;
 }
 

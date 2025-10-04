@@ -37,6 +37,10 @@ export class UsersService {
       throw new BadRequestException('Email already exists');
     }
 
+    if (createUserDto.role === 'EMPLOYEE' && !createUserDto.managerId) {
+      throw new BadRequestException('Employees must have a manager assigned');
+    }
+
     if (createUserDto.managerId) {
       const manager = await this.prisma.user.findUnique({
         where: { id: createUserDto.managerId },
@@ -174,6 +178,16 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
+    const finalRole = updateUserDto.role || user.role;
+    const finalManagerId =
+      updateUserDto.managerId !== undefined
+        ? updateUserDto.managerId
+        : user.managerId;
+
+    if (finalRole === 'EMPLOYEE' && !finalManagerId) {
+      throw new BadRequestException('Employees must have a manager assigned');
+    }
+
     if (updateUserDto.managerId) {
       const manager = await this.prisma.user.findUnique({
         where: { id: updateUserDto.managerId },
@@ -232,6 +246,12 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
+    if (changeRoleDto.role === 'EMPLOYEE' && !user.managerId) {
+      throw new BadRequestException(
+        'Cannot change to EMPLOYEE role without a manager assigned',
+      );
+    }
+
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: { role: changeRoleDto.role },
@@ -280,6 +300,10 @@ export class UsersService {
 
     if (manager.id === user.id) {
       throw new BadRequestException('User cannot be their own manager');
+    }
+
+    if (user.role === 'EMPLOYEE' && !assignManagerDto.managerId) {
+      throw new BadRequestException('Cannot remove manager from an employee');
     }
 
     const updatedUser = await this.prisma.user.update({
