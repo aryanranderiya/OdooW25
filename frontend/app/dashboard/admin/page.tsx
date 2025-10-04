@@ -23,30 +23,30 @@ export default function Page() {
   const [editingRule, setEditingRule] = useState<ApprovalRule | null>(null);
   const { toast } = useToast();
 
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [rules, approvals] = await Promise.all([
-        approvalApi.getRules(),
-        approvalApi.getPendingApprovals(),
-      ]);
-      setApprovalRules(rules);
-      setPendingApprovals(approvals);
-    } catch (error) {
-      console.error("Error loading data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load approval data",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
-
   useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const [rules, approvals] = await Promise.all([
+          approvalApi.getRules(),
+          approvalApi.getPendingApprovals(),
+        ]);
+        setApprovalRules(rules);
+        setPendingApprovals(approvals);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load approval data",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     loadData();
-  }, [loadData]);
+  }, []);
 
   const handleCreateRule = () => {
     setEditingRule(null);
@@ -92,7 +92,9 @@ export default function Page() {
           description: "Approval rule updated successfully",
         });
       } else {
-        const created = await approvalApi.createRule(data);
+        const created = await approvalApi.createRule(
+          data as CreateApprovalRuleDto
+        );
         setApprovalRules((prev) => [...prev, created]);
         toast({
           title: "Success",
