@@ -1,89 +1,56 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExpenseChart } from "@/components/expense-chart";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Upload,
-  Plus,
-  FileText,
-  Calendar,
-  User,
-  DollarSign,
-} from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Upload, Plus, FileText, Calendar, User, DollarSign } from "lucide-react";
 import { Expense, ExpenseStatus, ExpenseSummary } from "@/lib/types/expense";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { ROUTES } from "@/lib/constants";
 import { useExpenses } from "@/hooks/use-expenses";
 import { AuthGuard } from "@/components/auth-guard";
 import { useAuth } from "@/contexts/auth-context";
-import { convertCurrency } from "@/lib/currency-converter";
 
 function getStatusBadge(status: ExpenseStatus) {
   switch (status) {
     case ExpenseStatus.DRAFT:
       return (
-        <Badge
-          variant="outline"
-          className="border-zinc-300 text-zinc-600 bg-zinc-50 rounded-full"
-        >
+        <Badge variant="outline" className="border-zinc-300 text-zinc-600 bg-zinc-50 rounded-full">
           Draft
         </Badge>
       );
     case ExpenseStatus.PENDING_APPROVAL:
       return (
-        <Badge
-          variant="outline"
-          className="border-yellow-300 text-yellow-700 bg-yellow-50  rounded-full"
-        >
+        <Badge variant="outline" className="border-yellow-300 text-yellow-700 bg-yellow-50  rounded-full">
           Waiting Approval
         </Badge>
       );
     case ExpenseStatus.APPROVED:
       return (
-        <Badge
-          variant="outline"
-          className="border-green-300 text-green-700 bg-green-50 rounded-full"
-        >
+        <Badge variant="outline" className="border-green-300 text-green-700 bg-green-50 rounded-full">
           Approved
         </Badge>
       );
     case ExpenseStatus.REJECTED:
       return (
-        <Badge
-          variant="outline"
-          className="border-red-300 text-red-700 bg-red-50 rounded-full"
-        >
+        <Badge variant="outline" className="border-red-300 text-red-700 bg-red-50 rounded-full">
           Rejected
         </Badge>
       );
     case ExpenseStatus.CANCELLED:
       return (
-        <Badge
-          variant="outline"
-          className="border-zinc-300 text-zinc-600 bg-zinc-50 rounded-full"
-        >
+        <Badge variant="outline" className="border-zinc-300 text-zinc-600 bg-zinc-50 rounded-full">
           Cancelled
         </Badge>
       );
     default:
       return (
-        <Badge
-          variant="outline"
-          className="border-zinc-300 text-zinc-600 bg-zinc-50 rounded-full"
-        >
+        <Badge variant="outline" className="border-zinc-300 text-zinc-600 bg-zinc-50 rounded-full">
           Unknown
         </Badge>
       );
@@ -106,15 +73,11 @@ function StatCard({
   return (
     <Card className="gap-0">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-semibold text-zinc-600">
-          {title}
-        </CardTitle>
+        <CardTitle className="text-sm font-semibold text-zinc-600">{title}</CardTitle>
         <Icon className="h-5 w-5 text-zinc-400" />
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="text-3xl font-bold text-zinc-900 mb-2">
-          {formatCurrency(amount, currency)}
-        </div>
+        <div className="text-3xl font-bold text-zinc-900 mb-2">{formatCurrency(amount, currency)}</div>
         <p className="text-sm text-zinc-500 font-medium">
           {count} {count === 1 ? "expense" : "expenses"}
         </p>
@@ -126,55 +89,54 @@ function StatCard({
 function ExpensePageContent() {
   const router = useRouter();
   const { company } = useAuth();
-  const { data: expenses = [], error, isLoading } = useExpenses();
-  const companyCurrency = company?.currency || "USD";
-  const [summary, setSummary] = useState<ExpenseSummary>({
-    toSubmit: { count: 0, totalAmount: 0, currency: companyCurrency },
-    waitingApproval: { count: 0, totalAmount: 0, currency: companyCurrency },
-    approved: { count: 0, totalAmount: 0, currency: companyCurrency },
-  });
+  const { data: expensesData, error, isLoading } = useExpenses();
 
-  useEffect(() => {
-    async function calculateSummary() {
-      const newSummary = {
-        toSubmit: { count: 0, totalAmount: 0, currency: companyCurrency },
-        waitingApproval: {
-          count: 0,
-          totalAmount: 0,
-          currency: companyCurrency,
-        },
-        approved: { count: 0, totalAmount: 0, currency: companyCurrency },
-      };
+  // Stabilize the expenses array to prevent unnecessary re-renders from SWR
+  const expenses = useMemo(() => expensesData || [], [expensesData]);
 
-      for (const expense of expenses) {
-        const convertedAmount = await convertCurrency(
-          expense.originalAmount,
-          expense.originalCurrency,
-          companyCurrency
-        );
+  // Stabilize the company currency to prevent unnecessary re-renders
+  const companyCurrency = useMemo(() => company?.currency || "USD", [company?.currency]);
 
-        switch (expense.status) {
-          case ExpenseStatus.DRAFT:
-            newSummary.toSubmit.count++;
-            newSummary.toSubmit.totalAmount += convertedAmount;
-            break;
-          case ExpenseStatus.PENDING_APPROVAL:
-            newSummary.waitingApproval.count++;
-            newSummary.waitingApproval.totalAmount += convertedAmount;
-            break;
-          case ExpenseStatus.APPROVED:
-            newSummary.approved.count++;
-            newSummary.approved.totalAmount += convertedAmount;
-            break;
-        }
-      }
+  // Use a simple computed summary instead of state + useEffect
+  const summary = useMemo((): ExpenseSummary => {
+    const emptySummary = {
+      toSubmit: { count: 0, totalAmount: 0, currency: companyCurrency },
+      waitingApproval: { count: 0, totalAmount: 0, currency: companyCurrency },
+      approved: { count: 0, totalAmount: 0, currency: companyCurrency },
+    };
 
-      setSummary(newSummary);
+    if (!expenses.length) {
+      return emptySummary;
     }
 
-    calculateSummary();
-  }, [expenses, companyCurrency]);
+    const newSummary = {
+      toSubmit: { count: 0, totalAmount: 0, currency: companyCurrency },
+      waitingApproval: { count: 0, totalAmount: 0, currency: companyCurrency },
+      approved: { count: 0, totalAmount: 0, currency: companyCurrency },
+    };
 
+    // Use the converted amount that should already be provided by the backend
+    for (const expense of expenses) {
+      const amount = expense.convertedAmount || expense.originalAmount;
+
+      switch (expense.status) {
+        case ExpenseStatus.DRAFT:
+          newSummary.toSubmit.count++;
+          newSummary.toSubmit.totalAmount += amount;
+          break;
+        case ExpenseStatus.PENDING_APPROVAL:
+          newSummary.waitingApproval.count++;
+          newSummary.waitingApproval.totalAmount += amount;
+          break;
+        case ExpenseStatus.APPROVED:
+          newSummary.approved.count++;
+          newSummary.approved.totalAmount += amount;
+          break;
+      }
+    }
+
+    return newSummary;
+  }, [expenses, companyCurrency]);
   if (error) {
     return (
       <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
@@ -189,12 +151,8 @@ function ExpensePageContent() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-zinc-900 tracking-tight mb-3">
-              Expenses
-            </h1>
-            <p className="text-lg text-zinc-600 font-medium">
-              Manage your expense submissions and approvals
-            </p>
+            <h1 className="text-4xl font-bold text-zinc-900 tracking-tight mb-3">Expenses</h1>
+            <p className="text-lg text-zinc-600 font-medium">Manage your expense submissions and approvals</p>
           </div>
           <div className="flex gap-3">
             <Button variant="outline">
@@ -236,9 +194,11 @@ function ExpensePageContent() {
         </div>
 
         {/* Expense Chart */}
-        <div className="mb-8">
-          <ExpenseChart expenses={expenses} currency="USD" />
-        </div>
+        {!isLoading && (
+          <div className="mb-8">
+            <ExpenseChart expenses={expenses} currency="USD" />
+          </div>
+        )}
 
         {/* Expenses Table */}
         <Card>
@@ -272,46 +232,26 @@ function ExpensePageContent() {
                     <TableRow
                       key={expense.id}
                       className="cursor-pointer hover:bg-zinc-50 transition-colors"
-                      onClick={() =>
-                        router.push(ROUTES.EXPENSE_DETAIL(expense.id))
-                      }
-                    >
+                      onClick={() => router.push(ROUTES.EXPENSE_DETAIL(expense.id))}>
                       <TableCell className="py-4">
                         <div className="flex items-center gap-3">
                           <User className="h-4 w-4 text-zinc-400" />
                           <div>
-                            <div className="font-medium text-zinc-900">
-                              {expense.submitter.name}
-                            </div>
-                            <div className="text-sm text-zinc-500">
-                              {expense.submitter.email}
-                            </div>
+                            <div className="font-medium text-zinc-900">{expense.submitter.name}</div>
+                            <div className="text-sm text-zinc-500">{expense.submitter.email}</div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="py-4">
                         <div>
-                          <div className="font-medium text-zinc-900">
-                            {expense.title}
-                          </div>
-                          {expense.description && (
-                            <div className="text-sm text-zinc-500">
-                              {expense.description}
-                            </div>
-                          )}
+                          <div className="font-medium text-zinc-900">{expense.title}</div>
+                          {expense.description && <div className="text-sm text-zinc-500">{expense.description}</div>}
                         </div>
                       </TableCell>
                       <TableCell>{formatDate(expense.expenseDate)}</TableCell>
                       <TableCell>{expense.category?.name || "-"}</TableCell>
-                      <TableCell>
-                        {formatCurrency(
-                          expense.originalAmount,
-                          expense.originalCurrency
-                        )}
-                      </TableCell>
-                      <TableCell className="py-4">
-                        {getStatusBadge(expense.status)}
-                      </TableCell>
+                      <TableCell>{formatCurrency(expense.originalAmount, expense.originalCurrency)}</TableCell>
+                      <TableCell className="py-4">{getStatusBadge(expense.status)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
