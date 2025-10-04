@@ -83,7 +83,9 @@ export default function ExpenseForm({
     description: initialData?.description || "",
     originalAmount: initialData?.originalAmount || 0,
     originalCurrency: initialData?.originalCurrency || "USD",
-    expenseDate: initialData?.expenseDate || new Date(),
+    expenseDate: initialData?.expenseDate 
+      ? new Date(initialData.expenseDate) 
+      : new Date(),
     categoryId: initialData?.categoryId || "",
     receipts: initialData?.receipts || [],
   });
@@ -173,7 +175,7 @@ export default function ExpenseForm({
         description: formData.description,
         originalAmount: formData.originalAmount,
         originalCurrency: formData.originalCurrency,
-        expenseDate: formData.expenseDate.toISOString(),
+        expenseDate: formData.expenseDate,
         categoryId: formData.categoryId,
       });
       toast.success("Expense created successfully!");
