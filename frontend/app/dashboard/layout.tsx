@@ -105,11 +105,7 @@ export const Dashboard = ({ children }: { children: React.ReactNode }) => {
         </div>
       </header>
 
-<<<<<<< HEAD
-      <div className="w-full max-w-7xl mx-auto">{children}</div>
-=======
       <div className="overflow-auto">{children}</div>
->>>>>>> 7d9b771 (feat: add workflow approve)
     </div>
   );
 };
