@@ -4,7 +4,13 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { authApi } from "@/lib/auth-api";
 import { ROUTES } from "@/lib/constants";
-import type { User, Company, SignupData, LoginData } from "@/types/user";
+import type {
+  User,
+  Company,
+  SignupData,
+  LoginData,
+  AuthResponse,
+} from "@/types/user";
 
 interface AuthContextType {
   user: User | null;
@@ -12,9 +18,11 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (data: LoginData) => Promise<void>;
-  signup: (data: SignupData) => Promise<void>;
+  signup: (data: SignupData) => Promise<AuthResponse | void>;
   logout: () => Promise<void>;
   redirectIfAuthenticated: () => void;
+  setUser: (user: User | null) => void;
+  setCompany: (company: Company | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -63,6 +71,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = async (data: SignupData) => {
     const response = await authApi.signup(data);
+    if (response.message) {
+      return response;
+    }
     setUser(response.user);
     setCompany(response.company);
     router.push(ROUTES.DASHBOARD);
@@ -92,6 +103,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signup,
         logout,
         redirectIfAuthenticated,
+        setUser,
+        setCompany,
       }}
     >
       {children}

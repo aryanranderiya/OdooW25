@@ -93,9 +93,6 @@ export default function ExpenseForm({
   const [remarks, setRemarks] = useState("");
   const [convertedAmount, setConvertedAmount] = useState<number | null>(null);
   const [isConverting, setIsConverting] = useState(false);
-  const [showOcrCorrection, setShowOcrCorrection] = useState(false);
-
-
 
   useEffect(() => {
     async function performConversion() {
@@ -165,23 +162,6 @@ export default function ExpenseForm({
     }
 
     toast.success("OCR data inserted into form!");
-  };
-
-  const handleOcrCorrection = (field: string, value: any) => {
-    if (field === "amount") {
-      setFormData((prev) => ({ ...prev, originalAmount: value }));
-    } else if (field === "vendor") {
-      setFormData((prev) => ({ ...prev, title: `Expense from ${value}` }));
-    } else if (field === "date") {
-      setFormData((prev) => ({ ...prev, expenseDate: value }));
-    } else if (field === "category") {
-      const matchingCategory = categories.find((cat) =>
-        cat.name.toLowerCase().includes(value?.toLowerCase() || "")
-      );
-      if (matchingCategory) {
-        setFormData((prev) => ({ ...prev, categoryId: matchingCategory.id }));
-      }
-    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -498,71 +478,6 @@ export default function ExpenseForm({
                         </p>
                       </div>
                     </div>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowOcrCorrection(!showOcrCorrection)}
-                    >
-                      {showOcrCorrection ? "Hide" : "Correct"} OCR Data
-                    </Button>
-
-                    {showOcrCorrection && (
-                      <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
-                        <div>
-                          <Label>Amount</Label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={ocrState.data.amount || ""}
-                            onChange={(e) =>
-                              handleOcrCorrection(
-                                "amount",
-                                parseFloat(e.target.value)
-                              )
-                            }
-                          />
-                        </div>
-                        <div>
-                          <Label>Vendor</Label>
-                          <Input
-                            value={ocrState.data.vendor || ""}
-                            onChange={(e) =>
-                              handleOcrCorrection("vendor", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div>
-                          <Label>Date</Label>
-                          <Input
-                            type="date"
-                            value={
-                              ocrState.data.date
-                                ? format(
-                                    new Date(ocrState.data.date),
-                                    "yyyy-MM-dd"
-                                  )
-                                : ""
-                            }
-                            onChange={(e) =>
-                              handleOcrCorrection(
-                                "date",
-                                new Date(e.target.value)
-                              )
-                            }
-                          />
-                        </div>
-                        <div>
-                          <Label>Category</Label>
-                          <Input
-                            value={ocrState.data.category || ""}
-                            onChange={(e) =>
-                              handleOcrCorrection("category", e.target.value)
-                            }
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
 

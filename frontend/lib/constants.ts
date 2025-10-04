@@ -10,6 +10,9 @@ export const ROUTES = {
   CREATE_EXPENSE: "/dashboard/expenses/create",
   EXPENSE_DETAIL: (id: string) => `/dashboard/expenses/${id}`,
   ADMIN: "/dashboard/admin",
+  VERIFY_EMAIL: "/verify-email",
+  FORGOT_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password",
 } as const;
 
 export const AUTH_ROUTES = [ROUTES.LOGIN, ROUTES.SIGNUP] as const;
