@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { UserId } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ExpensesService } from './expenses.service';
@@ -25,5 +33,10 @@ export class ExpensesController {
   @Get('categories')
   getCategories(@UserId() userId: string) {
     return this.expensesService.getCategories(userId);
+  }
+
+  @Get(':id')
+  findOne(@UserId() userId: string, @Param('id') id: string) {
+    return this.expensesService.findOne(userId, id);
   }
 }

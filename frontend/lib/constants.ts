@@ -8,6 +8,7 @@ export const ROUTES = {
   SETTINGS: "/dashboard/admin/settings",
   EXPENSES: "/dashboard/expenses",
   CREATE_EXPENSE: "/dashboard/expenses/create",
+  EXPENSE_DETAIL: (id: string) => `/dashboard/expenses/${id}`,
   ADMIN: "/dashboard/admin",
 } as const;
 

@@ -1,42 +1,28 @@
 "use client";
 
+import { use } from "react";
 import ExpenseForm from "@/components/expense-form";
-import { Expense, ExpenseStatus } from "@/lib/types/expense";
+import { useExpense } from "@/hooks/use-expenses";
+import { AuthGuard } from "@/components/auth-guard";
+import { ExpenseStatus } from "@/lib/types/expense";
 
-// Mock data - replace with actual API call
-const mockExpense: Expense = {
-  id: "2",
-  title: "Travel Expense",
-  description: "Client meeting transportation",
-  originalAmount: 2500,
-  originalCurrency: "INR",
-  convertedAmount: 2500,
-  companyCurrency: "INR",
-  exchangeRate: 1,
-  expenseDate: new Date("2024-09-28"),
-  status: ExpenseStatus.PENDING_APPROVAL,
-  submitterId: "1",
-  submitter: { name: "John Doe", email: "john@company.com" },
-  categoryId: "2",
-  category: { name: "Travel" },
-  receipts: [],
-  submittedAt: new Date("2024-09-29"),
-  createdAt: new Date("2024-09-28"),
-  updatedAt: new Date("2024-09-29"),
-  approvalRequests: [
-    {
-      id: "1",
-      approver: { name: "Sarah Manager" },
-      status: "PENDING",
-      actionDate: undefined,
-    },
-  ],
-};
+export default function ExpenseDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  const { data: expense, error, isLoading } = useExpense(id);
 
-export default function EditExpensePage() {
-  const expense = mockExpense; // Temporarily use mock data
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
-  if (!expense) {
+  if (error || !expense) {
     return (
       <div className="container mx-auto py-6 max-w-4xl">
         <div className="text-center">
@@ -52,6 +38,11 @@ export default function EditExpensePage() {
     );
   }
 
+  // Convert date string to Date object
+  const expenseDate = typeof expense.expenseDate === 'string' 
+    ? new Date(expense.expenseDate)
+    : expense.expenseDate;
+
   const approvalInfo = expense.approvalRequests?.[0]
     ? {
         approver: expense.approvalRequests[0].approver.name,
@@ -63,20 +54,22 @@ export default function EditExpensePage() {
     : undefined;
 
   return (
-    <ExpenseForm
-      initialData={{
-        title: expense.title,
-        description: expense.description,
-        originalAmount: expense.originalAmount,
-        originalCurrency: expense.originalCurrency,
-        expenseDate: expense.expenseDate,
-        categoryId: expense.categoryId,
-        receipts: [],
-      }}
-      isEditing={true}
-      expenseId={expense.id}
-      currentStatus={expense.status}
-      approvalInfo={approvalInfo}
-    />
+    <AuthGuard>
+      <ExpenseForm
+        initialData={{
+          title: expense.title,
+          description: expense.description,
+          originalAmount: expense.originalAmount,
+          originalCurrency: expense.originalCurrency,
+          expenseDate: expenseDate,
+          categoryId: expense.categoryId,
+          receipts: [],
+        }}
+        expenseId={expense.id}
+        currentStatus={expense.status}
+        approvalInfo={approvalInfo}
+        mode="view"
+      />
+    </AuthGuard>
   );
 }

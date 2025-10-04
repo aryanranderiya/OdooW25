@@ -88,6 +88,44 @@ export class ExpensesService {
     return expenses;
   }
 
+  async findOne(userId: string, expenseId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const expense = await this.prisma.expense.findFirst({
+      where: {
+        id: expenseId,
+        companyId: user.companyId,
+      },
+      include: {
+        submitter: {
+          select: { id: true, name: true, email: true },
+        },
+        category: {
+          select: { id: true, name: true },
+        },
+        approvalRequests: {
+          include: {
+            approver: {
+              select: { name: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!expense) {
+      throw new NotFoundException('Expense not found');
+    }
+
+    return expense;
+  }
+
   async getCategories(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

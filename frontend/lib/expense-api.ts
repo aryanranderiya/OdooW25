@@ -30,4 +30,9 @@ export const expenseApi = {
     const response = await api.get<Category[]>("/expenses/categories");
     return response.data;
   },
+
+  getById: async (id: string): Promise<Expense> => {
+    const response = await api.get<Expense>(`/expenses/${id}`);
+    return response.data;
+  },
 };
