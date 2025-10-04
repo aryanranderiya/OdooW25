@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "dev:backend": "cd backend && pnpm run dev",
+    "dev:frontend": "cd frontend && pnpm run dev",
+    "dev": "concurrently \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+    "install:all": "cd backend && pnpm install && cd ../frontend && pnpm install",
+    "setup": "pnpm run install:all && cd backend && pnpm prisma generate",
+    "test:auth": "./test-auth.sh",
+    "check:env": "./check-env.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
