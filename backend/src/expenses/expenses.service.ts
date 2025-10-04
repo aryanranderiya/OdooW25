@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateExpenseRequest, GetExpensesQuery } from './types/expense.types';
+import { CurrencyService } from '../currency/currency.service';
 
 @Injectable()
 export class ExpensesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private currencyService: CurrencyService,
+  ) {}
 
   async create(userId: string, data: CreateExpenseRequest) {
     const user = await this.prisma.user.findUnique({
@@ -16,15 +20,23 @@ export class ExpensesService {
       throw new NotFoundException('User not found');
     }
 
+    // Convert currency to company's base currency (typically USD)
+    const { convertedAmount, exchangeRate } =
+      await this.currencyService.convertCurrency(
+        data.originalAmount,
+        data.originalCurrency,
+        user.company.currency,
+      );
+
     return await this.prisma.expense.create({
       data: {
         title: data.title,
         description: data.description,
         originalAmount: data.originalAmount,
         originalCurrency: data.originalCurrency,
-        convertedAmount: data.originalAmount, // Simple 1:1 conversion for now
+        convertedAmount,
         companyCurrency: user.company.currency,
-        exchangeRate: 1.0,
+        exchangeRate,
         expenseDate: new Date(data.expenseDate),
         status: 'DRAFT',
         submitterId: userId,

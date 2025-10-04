@@ -77,14 +77,14 @@ export default function ExpenseCreate() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
       <div className="max-w-4xl mx-auto px-6 py-12 space-y-8">
         {/* Header */}
         <div className="space-y-4">
-          <h1 className="text-4xl font-semibold text-zinc-900 tracking-tight">
+          <h1 className="text-4xl font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">
             New Expense
           </h1>
-          <p className="text-lg text-zinc-500">
+          <p className="text-lg text-zinc-500 dark:text-zinc-400">
             Submit a new expense for approval
           </p>
         </div>
@@ -134,7 +134,7 @@ export default function ExpenseCreate() {
                         variant="outline"
                         className="w-full justify-start"
                       >
-                        <CalendarIcon className="mr-3 h-4 w-4 text-zinc-500" />
+                        <CalendarIcon className="mr-3 h-4 w-4 text-zinc-500 dark:text-zinc-400" />
                         {formData.expenseDate
                           ? format(formData.expenseDate, "MMM dd, yyyy")
                           : "Pick a date"}
@@ -182,7 +182,7 @@ export default function ExpenseCreate() {
                         <SelectItem
                           key={category.id}
                           value={category.id}
-                          className="hover:bg-zinc-50"
+                          className="hover:bg-zinc-50 dark:hover:bg-zinc-800"
                         >
                           {category.name}
                         </SelectItem>

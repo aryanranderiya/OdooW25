@@ -35,7 +35,7 @@ function getStatusBadge(status: ExpenseStatus) {
       return (
         <Badge
           variant="outline"
-          className="border-zinc-300 text-zinc-600 bg-zinc-50 rounded-full"
+          className="border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800 rounded-full"
         >
           Draft
         </Badge>
@@ -71,7 +71,7 @@ function getStatusBadge(status: ExpenseStatus) {
       return (
         <Badge
           variant="outline"
-          className="border-zinc-300 text-zinc-600 bg-zinc-50 rounded-full"
+          className="border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800 rounded-full"
         >
           Cancelled
         </Badge>
@@ -80,7 +80,7 @@ function getStatusBadge(status: ExpenseStatus) {
       return (
         <Badge
           variant="outline"
-          className="border-zinc-300 text-zinc-600 bg-zinc-50 rounded-full"
+          className="border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800 rounded-full"
         >
           Unknown
         </Badge>
@@ -104,18 +104,19 @@ function StatCard({
   return (
     <Card className="gap-0">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-semibold text-zinc-600">
+        <CardTitle className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">
           {title}
         </CardTitle>
-        <Icon className="h-5 w-5 text-zinc-400" />
+        <Icon className="h-5 w-5 text-zinc-400 dark:text-zinc-500" />
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="text-3xl font-bold text-zinc-900 mb-2">
+        <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
           {formatCurrency(amount, currency)}
         </div>
-        <p className="text-sm text-zinc-500 font-medium">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium">
           {count} {count === 1 ? "expense" : "expenses"}
         </p>
+        <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">All amounts in {currency}</p>
       </CardContent>
     </Card>
   );
@@ -158,22 +159,24 @@ function ExpensePageContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
-        <p className="text-red-500">Failed to load expenses</p>
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center">
+        <p className="text-red-500 dark:text-red-400">
+          Failed to load expenses
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <div className="max-w-7xl mx-auto px-6 py-12">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
+      <div className="max-w-7xl mx-auto py-12">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-zinc-900 tracking-tight mb-3">
+            <h1 className="text-4xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight mb-3">
               Expenses
             </h1>
-            <p className="text-lg text-zinc-600 font-medium">
+            <p className="text-lg text-zinc-600 dark:text-zinc-400 font-medium">
               Manage your expense submissions and approvals
             </p>
           </div>
@@ -252,19 +255,19 @@ function ExpensePageContent() {
                   {expenses.map((expense: Expense) => (
                     <TableRow
                       key={expense.id}
-                      className="cursor-pointer hover:bg-zinc-50 transition-colors"
+                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
                       onClick={() =>
                         router.push(ROUTES.EXPENSE_DETAIL(expense.id))
                       }
                     >
-                      <TableCell className="py-4">
+                      <TableCell className="p-4">
                         <div className="flex items-center gap-3">
-                          <User className="h-4 w-4 text-zinc-400" />
+                          <User className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
                           <div>
-                            <div className="font-medium text-zinc-900">
+                            <div className="font-medium text-zinc-900 dark:text-zinc-100">
                               {expense.submitter.name}
                             </div>
-                            <div className="text-sm text-zinc-500">
+                            <div className="text-sm text-zinc-500 dark:text-zinc-400">
                               {expense.submitter.email}
                             </div>
                           </div>
@@ -272,11 +275,11 @@ function ExpensePageContent() {
                       </TableCell>
                       <TableCell className="py-4">
                         <div>
-                          <div className="font-medium text-zinc-900">
+                          <div className="font-medium text-zinc-900 dark:text-zinc-100">
                             {expense.title}
                           </div>
                           {expense.description && (
-                            <div className="text-sm text-zinc-500">
+                            <div className="text-sm text-zinc-500 dark:text-zinc-400">
                               {expense.description}
                             </div>
                           )}
@@ -285,10 +288,23 @@ function ExpensePageContent() {
                       <TableCell>{formatDate(expense.expenseDate)}</TableCell>
                       <TableCell>{expense.category?.name || "-"}</TableCell>
                       <TableCell>
-                        {formatCurrency(
-                          expense.originalAmount,
-                          expense.originalCurrency
-                        )}
+                        <div>
+                          <div className="font-medium">
+                            {formatCurrency(
+                              expense.convertedAmount,
+                              expense.companyCurrency
+                            )}
+                          </div>
+                          {expense.originalCurrency !==
+                            expense.companyCurrency && (
+                            <div className="text-xs text-zinc-500">
+                              {formatCurrency(
+                                expense.originalAmount,
+                                expense.originalCurrency
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="py-4">
                         {getStatusBadge(expense.status)}

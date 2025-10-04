@@ -29,7 +29,7 @@ export default function Home() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted p-4">
       <main className="flex max-w-4xl flex-col items-center gap-8 text-center">
         <div className="flex items-center gap-3">
-          <div className="bg-primary text-primary-foreground flex size-12 items-center justify-center rounded-xl">
+          <div className="bg-primary text-foreground flex size-12 items-center justify-center rounded-xl">
             <CardIcon className="size-8" />
           </div>
           <h1 className="text-4xl font-bold">Expense Management</h1>

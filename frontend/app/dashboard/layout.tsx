@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
+import { ThemeToggle } from "@/components/theme-toggle";
 // import { NotificationBell } from "@/components/notification-bell";
 
 export default function Layout({
@@ -56,8 +57,8 @@ export const Dashboard = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="p-2 rounded-tl-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 flex flex-col gap-2 flex-1 w-full h-full">
-      <header className="border-b bg-background">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+      <header className="">
+        <div className="container mx-auto flex h-12 items-center justify-between ">
           <div className="flex items-center gap-2">
             <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
               <CardIcon className="size-5" />
@@ -96,6 +97,8 @@ export const Dashboard = ({ children }: { children: React.ReactNode }) => {
                     <span>Profile</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <ThemeToggle />
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
@@ -107,7 +110,7 @@ export const Dashboard = ({ children }: { children: React.ReactNode }) => {
         </div>
       </header>
 
-      <div className="overflow-auto">{children}</div>
+      <div className="overflow-auto rounded-2xl">{children}</div>
     </div>
   );
 };

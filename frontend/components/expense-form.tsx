@@ -34,8 +34,10 @@ import ReceiptUploadModal from "./receipt-upload-modal";
 import StatusFlow from "./status-flow";
 import { useCreateExpense } from "@/hooks/use-expenses";
 import { useCategories } from "@/hooks/use-categories";
+import { useCurrencyConversion } from "@/hooks/use-currency";
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/constants";
+import { useAuth } from "@/contexts/auth-context";
 
 interface ExpenseFormProps {
   initialData?: Partial<ExpenseFormData>;
@@ -56,11 +58,15 @@ export default function ExpenseForm({
   mode = "create",
 }: ExpenseFormProps) {
   const router = useRouter();
+  const { company } = useAuth();
   const { categories, isLoading: categoriesLoading } = useCategories();
   const createExpense = useCreateExpense();
 
   const isViewMode = mode === "view";
   const isCreateMode = mode === "create";
+  
+  // Get the company's base currency (typically USD)
+  const baseCurrency = company?.currency || "USD";
 
   const [formData, setFormData] = useState<ExpenseFormData>({
     title: initialData?.title || "",
@@ -74,6 +80,13 @@ export default function ExpenseForm({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
+
+  // Get currency conversion in real-time
+  const { conversion, isConverting } = useCurrencyConversion(
+    formData.originalAmount,
+    formData.originalCurrency,
+    baseCurrency
+  );
 
   const isReadOnly = isViewMode;
   const showSubmitButton = isCreateMode;

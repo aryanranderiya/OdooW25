@@ -139,8 +139,10 @@ export function ExpenseChart({
         {/* Summary Stats */}
         <div className="mb-6 grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <p className="text-xs font-medium text-zinc-500">Total Spent</p>
-            <p className="text-2xl font-semibold text-zinc-900">
+            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              Total Spent
+            </p>
+            <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
               {new Intl.NumberFormat("en-US", {
                 style: "currency",
                 currency,
@@ -148,8 +150,10 @@ export function ExpenseChart({
             </p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs font-medium text-zinc-500">Daily Average</p>
-            <p className="text-2xl font-semibold text-zinc-900">
+            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              Daily Average
+            </p>
+            <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
               {new Intl.NumberFormat("en-US", {
                 style: "currency",
                 currency,
