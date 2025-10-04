@@ -23,28 +23,28 @@ export function DasSidebar() {
     },
     {
       label: "List Expenses",
-      href: "/expenses",
+      href: "/dashboard/expenses",
       icon: (
         <IconReceipt className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
     {
       label: "Create Expense",
-      href: "/expenses/create",
+      href: "/dashboard/expenses/create",
       icon: (
         <IconPlus className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
     {
       label: "Users",
-      href: "/admin/users",
+      href: "/dashboard/admin/users",
       icon: (
         <IconUsers className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
     {
       label: "Settings",
-      href: "/admin/settings",
+      href: "/dashboard/admin/settings",
       icon: (
         <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),

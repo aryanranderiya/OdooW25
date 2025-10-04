@@ -85,7 +85,7 @@ export default function ExpenseForm({
     try {
       await new Promise((resolve) => setTimeout(resolve, 2000));
       console.log("Submitting expense:", formData);
-      router.push("/expenses");
+      router.push("/dashboard/expenses");
     } catch (error) {
       console.error("Error submitting expense:", error);
     } finally {
@@ -94,8 +94,8 @@ export default function ExpenseForm({
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <div className="max-w-4xl mx-auto px-6 pt-12 space-y-5">
+    <div className="min-h-screen">
+      <div className="mx-auto px-6 pt-12 space-y-5">
         <div>
           <h1 className="text-4xl font-bold text-zinc-900 tracking-tight mb-3">
             {isEditing ? "Edit Expense" : "New Expense"}
