@@ -57,6 +57,7 @@ export class AuthService {
         email: dto.email,
         passwordHash,
         companyId: company.id,
+        isManagerApprover: true,
         role: 'ADMIN',
         emailVerificationToken: verificationToken,
         emailVerificationExpires: verificationExpires,

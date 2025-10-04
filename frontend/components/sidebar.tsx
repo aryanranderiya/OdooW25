@@ -57,17 +57,21 @@ export function DasSidebar() {
     },
   ];
 
-  const bottomLinks = [
+  const managerLinks = [
     {
-      label: "Settings",
-      href: ROUTES.SETTINGS,
+      label: "Approval",
+      href: ROUTES.ADMIN,
       icon: (
-        <IconSettings className="h-5 w-5 flex-shrink-0 text-neutral-600 dark:text-neutral-400" />
+        <CheckCheck className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
   ];
 
-  const links = [...baseLinks, ...(user?.role === "ADMIN" ? adminLinks : [])];
+  const links = [
+    ...baseLinks,
+    ...(user?.role === "ADMIN" ? adminLinks : []),
+    ...(user?.role === "MANAGER" || user?.role === "ADMIN" ? managerLinks : []),
+  ];
 
   return (
     <SidebarBody className="justify-between gap-10">
