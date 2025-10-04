@@ -162,8 +162,8 @@ function UserManagementContent() {
 
 export default function UserManagementPage() {
   return (
-    <AuthGuard>
-      <UserManagementContent />
-    </AuthGuard>
+    // <AuthGuard>
+    <UserManagementContent />
+    // </AuthGuard>
   );
 }
