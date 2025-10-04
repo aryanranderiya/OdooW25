@@ -13,6 +13,7 @@ import {
 
 function DashboardContent() {
   const { user, company, logout } = useAuth();
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-muted/40">
@@ -85,7 +86,11 @@ function DashboardContent() {
                   </Button>
                 )}
                 {user?.role === "ADMIN" && (
-                  <Button variant="outline" className="w-full">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => router.push(ROUTES.USERS)}
+                  >
                     Manage Users
                   </Button>
                 )}

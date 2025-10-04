@@ -10,6 +10,7 @@ export const CurrentUser = createParamDecorator(
 export const UserId = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
-    return request.user?.sub || request.headers['x-user-id'];
+
+    return request.user?.id;
   },
 );
