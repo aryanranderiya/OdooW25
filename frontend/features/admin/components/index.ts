@@ -14,5 +14,4 @@ export { PriorityBadge } from './priority-badge';
 // Types and utilities
 export * from './types';
 export * from './utils';
-export { ApprovalAPI } from './api';
-export { mockExpenseApprovals, mockApprovalChains } from './api';
+export { AdminApprovalAPI } from './api';

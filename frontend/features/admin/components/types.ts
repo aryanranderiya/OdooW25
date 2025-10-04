@@ -1,10 +1,10 @@
-// Types for the approval workflow system
+// Types for the approval workflow system (frontend display)
 export interface ExpenseApproval {
   id: number;
   employeeName: string;
   employeeAvatar?: string;
   expenseTitle: string;
-  amount: string;
+  amount: string; // Formatted string for display
   currency: string;
   category: string;
   date: string;

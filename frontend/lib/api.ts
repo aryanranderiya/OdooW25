@@ -2,6 +2,7 @@
 export { api } from "./api-client";
 export { authApi } from "./auth-api";
 export { userApi } from "./user-api";
+export { ApprovalAPI } from "./approval-api";
 
 // Re-export types
 export type {
@@ -16,3 +17,16 @@ export type {
   AssignManagerData,
   UserListFilters,
 } from "@/types/user";
+
+// Re-export approval types
+export type {
+  ExpenseApproval,
+  ApprovalRule,
+  ApprovalStep,
+  ApprovalComment,
+  ProcessApprovalDto,
+  CreateApprovalRuleDto,
+  UpdateApprovalRuleDto,
+  ApprovalAction,
+  ApprovalRuleType,
+} from "./approval-api";

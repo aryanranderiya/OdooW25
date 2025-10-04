@@ -2,26 +2,70 @@
 
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { IconRefresh, IconAlertCircle } from "@tabler/icons-react";
 import {
   PendingApprovalsTab,
   ApprovalChainsTab,
   NotificationsTab,
   EscalationSettingsTab,
-  ApprovalAPI,
+  AdminApprovalAPI,
   ExpenseApproval,
   ApprovalChain,
   ApprovalAction,
   NotificationSettings,
   EscalationSettings,
 } from "@/features/admin/components";
+import { useApprovals, useApprovalData } from "@/hooks/use-approvals";
+import { ExpenseApproval as BackendExpenseApproval } from "@/lib/approval-api";
+import { APIConnectionTest } from "@/components/api-connection-test";
+
+// Helper function to convert backend expense approval to frontend format
+function convertBackendToFrontend(
+  backendApproval: BackendExpenseApproval
+): ExpenseApproval {
+  return {
+    id: parseInt(backendApproval.id),
+    employeeName: backendApproval.employeeName,
+    employeeAvatar: backendApproval.employeeAvatar,
+    expenseTitle: backendApproval.expenseTitle,
+    amount: `$${backendApproval.amount.toFixed(2)}`,
+    currency: backendApproval.currency,
+    category: backendApproval.category,
+    date: backendApproval.date,
+    status: backendApproval.status,
+    priority: backendApproval.priority,
+    submittedAt: backendApproval.submittedAt,
+    description: backendApproval.description,
+    receiptUrl: backendApproval.receiptUrl,
+  };
+}
 
 export default function Page() {
-  // State for data
-  const [pendingApprovals, setPendingApprovals] = useState<ExpenseApproval[]>(
-    []
-  );
+  // Use custom hooks for approval operations
+  const {
+    approveExpense,
+    rejectExpense,
+    isLoading: isProcessing,
+    error: processingError,
+    clearError,
+  } = useApprovals();
+  const {
+    pendingApprovals: backendPendingApprovals,
+    isLoading,
+    error: dataError,
+    refreshData,
+    setPendingApprovals,
+  } = useApprovalData();
+
+  // State for converted frontend data
+  const [frontendPendingApprovals, setFrontendPendingApprovals] = useState<
+    ExpenseApproval[]
+  >([]);
+
+  // State for approval chains (using mock data for now until backend is ready)
   const [approvalChains, setApprovalChains] = useState<ApprovalChain[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   // State for settings
   const [notificationSettings, setNotificationSettings] =
@@ -39,24 +83,28 @@ export default function Page() {
       autoApproveOnFinalEscalation: false,
     });
 
+  // Convert backend data to frontend format
+  useEffect(() => {
+    const convertedApprovals = backendPendingApprovals.map(
+      convertBackendToFrontend
+    );
+    setFrontendPendingApprovals(convertedApprovals);
+  }, [backendPendingApprovals]);
+
   // Load initial data
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
-    setIsLoading(true);
+    await refreshData(true); // true for admin - get all pending approvals
+
+    // Load approval chains
     try {
-      const [approvals, chains] = await Promise.all([
-        ApprovalAPI.getPendingApprovals(),
-        ApprovalAPI.getApprovalChains(),
-      ]);
-      setPendingApprovals(approvals);
+      const chains = await AdminApprovalAPI.getApprovalChains();
       setApprovalChains(chains);
     } catch (error) {
-      console.error("Error loading data:", error);
-    } finally {
-      setIsLoading(false);
+      console.error("Error loading approval chains:", error);
     }
   };
 
@@ -65,23 +113,28 @@ export default function Page() {
     action: ApprovalAction,
     comment: string
   ) => {
+    const expenseIdStr = expenseId.toString();
+    let success = false;
+
     try {
       if (action === "approve") {
-        await ApprovalAPI.approveExpense(expenseId, comment);
+        success = await approveExpense(expenseIdStr, comment);
       } else {
-        await ApprovalAPI.rejectExpense(expenseId, comment);
+        success = await rejectExpense(expenseIdStr, comment);
       }
 
-      // Remove the processed expense from pending list
-      setPendingApprovals((prev) =>
-        prev.filter((expense) => expense.id !== expenseId)
-      );
-
-      // TODO: Show success toast notification
-      console.log(`Expense ${expenseId} ${action}d successfully`);
+      if (success) {
+        // Remove the processed expense from both frontend and backend lists
+        setFrontendPendingApprovals((prev) =>
+          prev.filter((expense) => expense.id !== expenseId)
+        );
+        setPendingApprovals((prev) =>
+          prev.filter((expense) => expense.id !== expenseIdStr)
+        );
+        console.log(`Expense ${expenseId} ${action}d successfully`);
+      }
     } catch (error) {
       console.error(`Error ${action}ing expense:`, error);
-      // TODO: Show error toast notification
     }
   };
 
@@ -98,7 +151,7 @@ export default function Page() {
 
   const handleDeleteChain = async (chainId: number) => {
     try {
-      await ApprovalAPI.deleteApprovalChain(chainId);
+      await AdminApprovalAPI.deleteApprovalChain(chainId);
       setApprovalChains((prev) => prev.filter((chain) => chain.id !== chainId));
       console.log("Approval chain deleted successfully");
     } catch (error) {
@@ -129,12 +182,13 @@ export default function Page() {
             Manage expense approvals, approval chains, and workflow settings
           </p>
         </div>
+        <APIConnectionTest />
       </div>
 
       <Tabs defaultValue="pending" className="space-y-4">
         <TabsList>
           <TabsTrigger value="pending">
-            Pending Approvals ({pendingApprovals.length})
+            Pending Approvals ({frontendPendingApprovals.length})
           </TabsTrigger>
           <TabsTrigger value="chains">Approval Chains</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -142,8 +196,28 @@ export default function Page() {
         </TabsList>
 
         <TabsContent value="pending" className="space-y-4">
+          {(processingError || dataError) && (
+            <Alert variant="destructive">
+              <IconAlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {processingError || dataError}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    clearError();
+                    loadData();
+                  }}
+                  className="ml-2"
+                >
+                  <IconRefresh className="h-4 w-4 mr-1" />
+                  Retry
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
           <PendingApprovalsTab
-            expenses={pendingApprovals}
+            expenses={frontendPendingApprovals}
             onApprovalAction={handleApprovalAction}
           />
         </TabsContent>

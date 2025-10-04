@@ -104,6 +104,7 @@ export function SignupForm({
       });
       toast.success("Account created successfully!");
     } catch (error: any) {
+      console.log(error);
       toast.error(
         error.response?.data?.message || "Signup failed. Please try again."
       );
