@@ -46,7 +46,7 @@ export default function Page() {
     };
 
     loadData();
-  }, [toast]);
+  }, []);
 
   const handleCreateRule = () => {
     setEditingRule(null);
