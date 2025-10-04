@@ -23,30 +23,29 @@ export default function Page() {
   const [editingRule, setEditingRule] = useState<ApprovalRule | null>(null);
   const { toast } = useToast();
 
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const [rules, approvals] = await Promise.all([
-        approvalApi.getRules(),
-        approvalApi.getPendingApprovals(),
-      ]);
-      setApprovalRules(rules);
-      setPendingApprovals(approvals);
-    } catch (error) {
-      console.error("Error loading data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load approval data",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const [rules, approvals] = await Promise.all([
+          approvalApi.getRules(),
+          approvalApi.getPendingApprovals(),
+        ]);
+        setApprovalRules(rules);
+        setPendingApprovals(approvals);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load approval data",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCreateRule = () => {
