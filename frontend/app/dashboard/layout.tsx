@@ -105,7 +105,7 @@ export const Dashboard = ({ children }: { children: React.ReactNode }) => {
         </div>
       </header>
 
-      <div className="">{children}</div>
+      <div className="w-full max-w-7xl mx-auto">{children}</div>
     </div>
   );
 };
