@@ -45,16 +45,6 @@ export default function ExpenseDetailPage({
       ? new Date(expense.expenseDate)
       : expense.expenseDate;
 
-  const approvalInfo = expense.approvalActions?.[0]
-    ? {
-        approver: expense.approvalActions[0].approver.name,
-        status: expense.approvalActions[0].status,
-        timestamp: expense.approvalActions[0].createdAt
-          ? new Date(expense.approvalActions[0].createdAt).toLocaleString()
-          : undefined,
-      }
-    : undefined;
-
   return (
     <AuthGuard>
       <ExpenseView
@@ -71,7 +61,7 @@ export default function ExpenseDetailPage({
           status: expense.status,
         }}
         categories={categories}
-        approvalInfo={approvalInfo}
+        approvalActions={expense.approvalActions || []}
       />
     </AuthGuard>
   );
