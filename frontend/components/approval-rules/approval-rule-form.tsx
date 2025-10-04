@@ -51,6 +51,18 @@ export function ApprovalRuleForm({
     Array<{ sequence: number; approverId: string; isRequired: boolean }>
   >(initialData?.approvalSteps || []);
 
+  interface FormData {
+    name: string;
+    description?: string;
+    ruleType: ApprovalRuleType;
+    isActive: boolean;
+    minAmount?: number;
+    maxAmount?: number;
+    percentageThreshold?: number;
+    specificApproverId?: string;
+    requireManagerFirst: boolean;
+  }
+
   const {
     register,
     handleSubmit,
@@ -58,7 +70,7 @@ export function ApprovalRuleForm({
     watch,
     reset,
     formState: { errors },
-  } = useForm<any>({
+  } = useForm<FormData>({
     defaultValues: {
       name: "",
       description: "",
@@ -139,28 +151,28 @@ export function ApprovalRuleForm({
     setApprovalSteps(updated);
   };
 
-  const onFormSubmit = (data: Record<string, unknown>) => {
+  const onFormSubmit = (data: FormData) => {
     // Convert empty strings to undefined for numeric fields
     const sanitizedData: Partial<CreateApprovalRuleDto> = {
-      ...(data as Partial<CreateApprovalRuleDto>),
+      name: data.name,
+      description: data.description,
+      isActive: data.isActive,
+      requireManagerFirst: data.requireManagerFirst,
       ruleType,
       minAmount:
-        data.minAmount === "" || data.minAmount === undefined
+        data.minAmount === undefined
           ? undefined
           : parseFloat(String(data.minAmount)),
       maxAmount:
-        data.maxAmount === "" || data.maxAmount === undefined
+        data.maxAmount === undefined
           ? undefined
           : parseFloat(String(data.maxAmount)),
       percentageThreshold:
-        data.percentageThreshold === "" ||
         data.percentageThreshold === undefined
           ? undefined
           : parseInt(String(data.percentageThreshold)),
       specificApproverId:
-        data.specificApproverId === ""
-          ? undefined
-          : String(data.specificApproverId || ""),
+        data.specificApproverId === "" ? undefined : data.specificApproverId,
       approvalSteps:
         ruleType === ApprovalRuleType.SEQUENTIAL ||
         ruleType === ApprovalRuleType.PERCENTAGE ||

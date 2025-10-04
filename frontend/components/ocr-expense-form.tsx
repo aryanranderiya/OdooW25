@@ -136,7 +136,9 @@ export default function OcrExpenseForm() {
     setIsSubmitting(true);
     try {
       const expense = await createExpenseFromReceipt();
-      router.push(`/dashboard/expenses/${expense.id}`);
+      if (expense && typeof expense === "object" && "id" in expense) {
+        router.push(`/dashboard/expenses/${expense.id}`);
+      }
     } catch (error) {
       console.error("Failed to create expense from receipt:", error);
     } finally {
@@ -150,7 +152,9 @@ export default function OcrExpenseForm() {
 
     try {
       const expense = await expenseApi.createExpense(formData);
-      router.push(`/dashboard/expenses/${expense.id}`);
+      if (expense && typeof expense === "object" && "id" in expense) {
+        router.push(`/dashboard/expenses/${expense.id}`);
+      }
     } catch (error) {
       console.error("Error creating expense:", error);
     } finally {

@@ -1,30 +1,29 @@
 "use client";
 
-import { useAuth } from "@/contexts/auth-context";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useRouter } from "next/navigation";
-import { ROUTES } from "@/lib/constants";
-import { useExpenses } from "@/hooks/use-expenses";
-import { useMemo } from "react";
-import { ExpenseStatus, ExpenseSummary } from "@/lib/types/expense";
-import { formatCurrency, formatDate } from "@/lib/utils";
-import {
-  Plus,
-  FileText,
-  Calendar,
-  DollarSign,
-  ArrowRight,
-  TrendingUp,
-  Clock,
-  CheckCircle2,
-} from "lucide-react";
-import Link from "next/link";
 import { ExpenseByCategoryChart } from "@/components/charts/expense-by-category-chart";
 import { ExpenseByStatusChart } from "@/components/charts/expense-by-status-chart";
 import { ExpenseTrendsChart } from "@/components/charts/expense-trends-chart";
 import { MonthlyExpenseChart } from "@/components/charts/monthly-expense-chart";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/contexts/auth-context";
+import { useExpenses } from "@/hooks/use-expenses";
+import { ROUTES } from "@/lib/constants";
+import { ExpenseStatus } from "@/lib/types/expense";
+import { formatCurrency, formatDate } from "@/lib/utils";
+import {
+  ArrowRight,
+  Calendar,
+  CheckCircle2,
+  DollarSign,
+  FileText,
+  Plus,
+  TrendingUp,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 
 function getStatusBadge(status: ExpenseStatus) {
   switch (status) {
@@ -78,43 +77,6 @@ function getStatusBadge(status: ExpenseStatus) {
   }
 }
 
-function StatCard({
-  title,
-  amount,
-  currency,
-  count,
-  icon: Icon,
-}: {
-  title: string;
-  amount: number;
-  currency: string;
-  count: number;
-  icon: React.ComponentType<{ className?: string }>;
-}) {
-  return (
-    <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-shadow">
-      <CardContent className="">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-            {title}
-          </p>
-          <div className="h-8 w-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-            <Icon className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-          </div>
-        </div>
-        <div>
-          <p className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-            {formatCurrency(amount, currency)}
-          </p>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-            {count} {count === 1 ? "expense" : "expenses"}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 function DashboardContent() {
   const { user, company } = useAuth();
   const router = useRouter();
@@ -140,45 +102,6 @@ function DashboardContent() {
     [company?.currency]
   );
 
-  const summary = useMemo((): ExpenseSummary => {
-    const emptySummary = {
-      toSubmit: { count: 0, totalAmount: 0, currency: companyCurrency },
-      waitingApproval: { count: 0, totalAmount: 0, currency: companyCurrency },
-      approved: { count: 0, totalAmount: 0, currency: companyCurrency },
-    };
-
-    if (!expenses.length) {
-      return emptySummary;
-    }
-
-    const newSummary = {
-      toSubmit: { count: 0, totalAmount: 0, currency: companyCurrency },
-      waitingApproval: { count: 0, totalAmount: 0, currency: companyCurrency },
-      approved: { count: 0, totalAmount: 0, currency: companyCurrency },
-    };
-
-    for (const expense of expenses) {
-      const amount = expense.convertedAmount || expense.originalAmount;
-
-      switch (expense.status) {
-        case ExpenseStatus.DRAFT:
-          newSummary.toSubmit.count++;
-          newSummary.toSubmit.totalAmount += amount;
-          break;
-        case ExpenseStatus.PENDING_APPROVAL:
-          newSummary.waitingApproval.count++;
-          newSummary.waitingApproval.totalAmount += amount;
-          break;
-        case ExpenseStatus.APPROVED:
-          newSummary.approved.count++;
-          newSummary.approved.totalAmount += amount;
-          break;
-      }
-    }
-
-    return newSummary;
-  }, [expenses, companyCurrency]);
-
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950">
       <main className="max-w-7xl mx-auto px-6 py-8">
@@ -188,7 +111,7 @@ function DashboardContent() {
             Welcome back, {user?.name}
           </h1>
           <p className="text-muted-foreground">
-            Here's an overview of your expenses
+            Here&apos;s an overview of your expenses
           </p>
         </div>
 
@@ -354,7 +277,7 @@ function DashboardContent() {
                 </div>
               ) : (
                 <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                  {expenses.map((expense, index) => (
+                  {expenses.map((expense) => (
                     <div
                       key={expense.id}
                       className="p-4 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors cursor-pointer group"

@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { AuthGuard } from "@/components/auth-guard";
+import { ExpenseChart } from "@/components/expense-chart";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ExpenseChart } from "@/components/expense-chart";
 import {
   Table,
   TableBody,
@@ -15,22 +13,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Upload,
-  Plus,
-  FileText,
-  Calendar,
-  User,
-  DollarSign,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { useExpenses } from "@/hooks/use-expenses";
+import { ROUTES } from "@/lib/constants";
 import { Expense, ExpenseStatus, ExpenseSummary } from "@/lib/types/expense";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { ROUTES } from "@/lib/constants";
-import { useExpenses } from "@/hooks/use-expenses";
-import { AuthGuard } from "@/components/auth-guard";
-import { useAuth } from "@/contexts/auth-context";
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  DollarSign,
+  FileText,
+  Plus,
+  User,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 
 function getStatusBadge(status: ExpenseStatus) {
   switch (status) {

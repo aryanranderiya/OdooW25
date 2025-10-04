@@ -1,8 +1,9 @@
 "use client";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { CurrencySelect } from "@/components/ui/currency-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,36 +20,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useCategories } from "@/hooks/use-categories";
+import { createExpense } from "@/hooks/use-expenses";
 import { formatCurrencyDisplay, getCurrencySymbol } from "@/lib/currency";
 import {
+  Category,
   ExpenseFormData,
   ExpenseStatus,
   PAYMENT_METHODS,
-  Category,
 } from "@/lib/types/expense";
 import { format } from "date-fns";
 import {
-  Calendar as CalendarIcon,
-  Upload,
-  Camera,
-  FileText,
   AlertCircle,
+  Calendar as CalendarIcon,
   CheckCircle2,
+  FileText,
   Loader2,
+  Upload,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import StatusFlow from "./status-flow";
-import { createExpense } from "@/hooks/use-expenses";
-import { useCategories } from "@/hooks/use-categories";
 
-import { toast } from "sonner";
-import { ROUTES } from "@/lib/constants";
 import { useAuth } from "@/contexts/auth-context";
+import { useOcr } from "@/hooks/use-ocr";
+import { ROUTES } from "@/lib/constants";
 import { convertCurrency } from "@/lib/currency-converter";
 import { formatCurrency } from "@/lib/utils";
-import { useOcr } from "@/hooks/use-ocr";
+import { toast } from "sonner";
 
 interface ExpenseFormProps {
   initialData?: Partial<ExpenseFormData>;
