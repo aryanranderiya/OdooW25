@@ -1,10 +1,10 @@
 "use client";
 
 import { use } from "react";
-import ExpenseForm from "@/components/expense-form";
+import ExpenseView from "@/components/expense-view";
 import { useExpense } from "@/hooks/use-expenses";
+import { useCategories } from "@/hooks/use-categories";
 import { AuthGuard } from "@/components/auth-guard";
-import { ExpenseStatus } from "@/lib/types/expense";
 
 export default function ExpenseDetailPage({
   params,
@@ -13,6 +13,7 @@ export default function ExpenseDetailPage({
 }) {
   const { id } = use(params);
   const { data: expense, error, isLoading } = useExpense(id);
+  const { categories } = useCategories();
 
   if (isLoading) {
     return (
@@ -39,9 +40,10 @@ export default function ExpenseDetailPage({
   }
 
   // Convert date string to Date object
-  const expenseDate = typeof expense.expenseDate === 'string' 
-    ? new Date(expense.expenseDate)
-    : expense.expenseDate;
+  const expenseDate =
+    typeof expense.expenseDate === "string"
+      ? new Date(expense.expenseDate)
+      : expense.expenseDate;
 
   const approvalInfo = expense.approvalRequests?.[0]
     ? {
@@ -55,20 +57,18 @@ export default function ExpenseDetailPage({
 
   return (
     <AuthGuard>
-      <ExpenseForm
-        initialData={{
+      <ExpenseView
+        expense={{
           title: expense.title,
           description: expense.description,
           originalAmount: expense.originalAmount,
           originalCurrency: expense.originalCurrency,
           expenseDate: expenseDate,
           categoryId: expense.categoryId,
-          receipts: [],
+          status: expense.status,
         }}
-        expenseId={expense.id}
-        currentStatus={expense.status}
+        categories={categories}
         approvalInfo={approvalInfo}
-        mode="view"
       />
     </AuthGuard>
   );
