@@ -11,7 +11,6 @@
 
 ## Deployment
 
-Visit the live application: [odoow25.aryanranderiya.com](https://odoow25.aryanranderiya.com)
 Demo Video: [odoow25video.aryanranderiya.com](https://odoow25.aryanranderiya.com)
 
 ## Contributors

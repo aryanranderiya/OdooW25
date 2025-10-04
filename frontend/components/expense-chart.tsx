@@ -153,8 +153,8 @@ export function ExpenseChart({
     const nonZeroDays = chartData.filter(
       (item) =>
         (visibleStatuses.approved ? item.approved : 0) +
-        (visibleStatuses.waiting ? item.waiting : 0) +
-        (visibleStatuses.rejected ? item.rejected : 0) >
+          (visibleStatuses.waiting ? item.waiting : 0) +
+          (visibleStatuses.rejected ? item.rejected : 0) >
         0
     ).length;
     return nonZeroDays > 0 ? totalAmount / nonZeroDays : 0;
@@ -266,25 +266,25 @@ export function ExpenseChart({
                 </span>
               </button>
             </div>
-        <Select value={timeRange} onValueChange={handleTimeRangeChange}>
-          <SelectTrigger
-            className="w-[160px] rounded-lg"
-            aria-label="Select time range"
-          >
-            <SelectValue placeholder="Last 3 months" />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl">
-            {/* <SelectItem value="90d" className="rounded-lg">
+            <Select value={timeRange} onValueChange={handleTimeRangeChange}>
+              <SelectTrigger
+                className="w-[160px] rounded-lg"
+                aria-label="Select time range"
+              >
+                <SelectValue placeholder="Last 3 months" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                {/* <SelectItem value="90d" className="rounded-lg">
               Last 3 months
             </SelectItem> */}
-            <SelectItem value="30d" className="rounded-lg">
-              Last 30 days
-            </SelectItem>
-            <SelectItem value="7d" className="rounded-lg">
-              Last 7 days
-            </SelectItem>
-          </SelectContent>
-        </Select>
+                <SelectItem value="30d" className="rounded-lg">
+                  Last 30 days
+                </SelectItem>
+                <SelectItem value="7d" className="rounded-lg">
+                  Last 7 days
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </CardHeader>
