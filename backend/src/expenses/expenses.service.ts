@@ -273,6 +273,7 @@ export class ExpensesService {
           submitter: { select: { name: true, email: true } },
           category: { select: { name: true } },
           receipts: true,
+          approvalActions: true,
         },
       }),
       this.prisma.expense.count({ where }),
@@ -299,6 +300,11 @@ export class ExpensesService {
         submitter: { select: { name: true, email: true } },
         category: { select: { name: true } },
         receipts: true,
+        approvalActions: {
+          include: {
+            approver: true,
+          },
+        },
       },
     });
 

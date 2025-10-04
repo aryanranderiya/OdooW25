@@ -4,7 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getCurrencySymbol } from "@/lib/currency";
 import { ExpenseStatus } from "@/lib/types/expense";
 import { format } from "date-fns";
-import type { Category } from "@/lib/types/expense";
+import type { Category, ApprovalAction } from "@/lib/types/expense";
+import { Badge } from "@/components/ui/badge";
 
 interface ExpenseViewProps {
   expense: {
@@ -20,17 +21,13 @@ interface ExpenseViewProps {
     status: ExpenseStatus;
   };
   categories: Category[];
-  approvalInfo?: {
-    approver: string;
-    status: "PENDING" | "APPROVED" | "REJECTED";
-    timestamp?: string;
-  };
+  approvalActions?: ApprovalAction[];
 }
 
 export default function ExpenseView({
   expense,
   categories,
-  approvalInfo,
+  approvalActions = [],
 }: ExpenseViewProps) {
   // Apple-like status styling
   const getStatusConfig = (status: ExpenseStatus) => {
@@ -71,6 +68,22 @@ export default function ExpenseView({
   };
 
   const statusConfig = getStatusConfig(expense.status);
+
+  const getStatusBadge = (status: string) => {
+    const statusColors: Record<string, string> = {
+      PENDING: "bg-yellow-100 text-yellow-800",
+      APPROVED: "bg-green-100 text-green-800",
+      REJECTED: "bg-red-100 text-red-800",
+    };
+
+    return (
+      <Badge className={statusColors[status] || ""} variant="outline">
+        {status}
+      </Badge>
+    );
+  };
+
+  console.log(approvalActions);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
@@ -173,55 +186,42 @@ export default function ExpenseView({
               </div>
             </div>
 
-            {/* Approval Information Section */}
-            {approvalInfo && (
-              <div className="pt-8 border-t border-zinc-100 dark:border-zinc-800 space-y-6">
+            {/* Approval History Section */}
+            {approvalActions && approvalActions.length > 0 && (
+              <div className="pt-8 border-t border-zinc-100 dark:border-zinc-800 space-y-4">
                 <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                  Approval Information
+                  Approval History
                 </h3>
-                <div className="grid grid-cols-3 gap-8">
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
-                      Approver
-                    </p>
-                    <p className="text-base font-medium text-zinc-900 dark:text-zinc-100">
-                      {approvalInfo.approver}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
-                      Decision
-                    </p>
+                <div className="space-y-2">
+                  {approvalActions.map((action) => (
                     <div
-                      className={`inline-flex px-3 py-1 rounded-full ${
-                        approvalInfo.status === "APPROVED"
-                          ? "bg-green-50"
-                          : approvalInfo.status === "REJECTED"
-                          ? "bg-red-50"
-                          : "bg-amber-50"
-                      }`}
+                      key={action.id}
+                      className="flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg"
                     >
-                      <span
-                        className={`text-sm font-medium ${
-                          approvalInfo.status === "APPROVED"
-                            ? "text-green-600"
-                            : approvalInfo.status === "REJECTED"
-                            ? "text-red-600"
-                            : "text-amber-600"
-                        }`}
-                      >
-                        {approvalInfo.status}
-                      </span>
+                      <div className="flex-1">
+                        <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {action.approver.name}
+                        </p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {action.approver.email}
+                        </p>
+                        {action.comment && (
+                          <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
+                            {action.comment}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right space-y-1">
+                        {getStatusBadge(action.status)}
+                        <p
+                          className="text-xs text-zinc-500 dark:text-zinc-400"
+                          suppressHydrationWarning
+                        >
+                          {format(new Date(action.createdAt), "MMM dd, HH:mm")}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
-                      Date
-                    </p>
-                    <p className="text-base font-medium text-zinc-900 dark:text-zinc-100">
-                      {approvalInfo.timestamp || "Pending"}
-                    </p>
-                  </div>
+                  ))}
                 </div>
               </div>
             )}
