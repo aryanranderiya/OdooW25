@@ -9,18 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-<<<<<<< HEAD
 import { CardIcon } from "@/components/ui/icons";
 import { useAuth } from "@/contexts/auth-context";
-=======
->>>>>>> 3cfe4c7 (feat: better dashboard layout)
 
 function DashboardContent() {
   const { user, company, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-muted/40">
-<<<<<<< HEAD
       <header className="border-b bg-background">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
@@ -41,8 +37,6 @@ function DashboardContent() {
         </div>
       </header>
 
-=======
->>>>>>> 3cfe4c7 (feat: better dashboard layout)
       <main className="container mx-auto p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Dashboard</h1>
