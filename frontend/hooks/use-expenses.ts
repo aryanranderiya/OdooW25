@@ -35,3 +35,10 @@ export function useExpenses(params?: GetExpensesParams) {
 export function useCreateExpense() {
   return useSWRMutation("/expenses", createExpenseMutator);
 }
+
+// Hook for fetching single expense
+export function useExpense(id: string) {
+  return useSWR<Expense>(id ? `/expenses/${id}` : null, () =>
+    expenseApi.getById(id)
+  );
+}

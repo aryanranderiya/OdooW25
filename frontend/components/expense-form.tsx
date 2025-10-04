@@ -35,10 +35,10 @@ import StatusFlow from "./status-flow";
 import { useCreateExpense } from "@/hooks/use-expenses";
 import { useCategories } from "@/hooks/use-categories";
 import { toast } from "sonner";
+import { ROUTES } from "@/lib/constants";
 
 interface ExpenseFormProps {
   initialData?: Partial<ExpenseFormData>;
-  isEditing?: boolean;
   expenseId?: string;
   currentStatus?: ExpenseStatus;
   approvalInfo?: {
@@ -46,17 +46,21 @@ interface ExpenseFormProps {
     status: "PENDING" | "APPROVED" | "REJECTED";
     timestamp?: string;
   };
+  mode?: 'create' | 'view';
 }
 
 export default function ExpenseForm({
   initialData,
-  isEditing = false,
   currentStatus = ExpenseStatus.DRAFT,
   approvalInfo,
+  mode = 'create',
 }: ExpenseFormProps) {
   const router = useRouter();
   const { categories, isLoading: categoriesLoading } = useCategories();
   const createExpense = useCreateExpense();
+
+  const isViewMode = mode === 'view';
+  const isCreateMode = mode === 'create';
 
   const [formData, setFormData] = useState<ExpenseFormData>({
     title: initialData?.title || "",
@@ -71,8 +75,8 @@ export default function ExpenseForm({
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
 
-  const isReadOnly = currentStatus !== ExpenseStatus.DRAFT;
-  const showSubmitButton = !isReadOnly;
+  const isReadOnly = isViewMode;
+  const showSubmitButton = isCreateMode;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -87,7 +91,7 @@ export default function ExpenseForm({
         categoryId: formData.categoryId,
       });
       toast.success("Expense created successfully!");
-      router.push("/dashboard/expenses");
+      router.push(ROUTES.EXPENSES);
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to create expense";
@@ -100,11 +104,11 @@ export default function ExpenseForm({
       <div className="mx-auto px-6 pt-12 space-y-5">
         <div>
           <h1 className="text-4xl font-bold text-zinc-900 tracking-tight mb-3">
-            {isEditing ? "Edit Expense" : "New Expense"}
+            {isViewMode ? "View Expense" : "New Expense"}
           </h1>
           <p className="text-lg text-zinc-600 font-medium">
-            {isEditing
-              ? "Update your expense details"
+            {isViewMode
+              ? "Review expense details"
               : "Submit a new expense for approval"}
           </p>
         </div>
@@ -211,21 +215,23 @@ export default function ExpenseForm({
                   </Select>
                 </div>
 
-                <div className="space-y-3">
-                  <Label htmlFor="paid-by">Paid By</Label>
-                  <Select disabled={isReadOnly}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select payment method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PAYMENT_METHODS.map((method) => (
-                        <SelectItem key={method.value} value={method.value}>
-                          {method.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {!isReadOnly && (
+                  <div className="space-y-3">
+                    <Label htmlFor="paid-by">Paid By</Label>
+                    <Select disabled={isReadOnly}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select payment method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PAYMENT_METHODS.map((method) => (
+                          <SelectItem key={method.value} value={method.value}>
+                            {method.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div className="space-y-3">
                   <Label htmlFor="currency">Currency *</Label>
@@ -278,18 +284,20 @@ export default function ExpenseForm({
                   )}
                 </div>
 
-                <div className="space-y-3">
-                  <Label htmlFor="remarks">Remarks</Label>
-                  <Textarea
-                    id="remarks"
-                    value={remarks}
-                    onChange={(e) => setRemarks(e.target.value)}
-                    placeholder="Optional remarks"
-                    disabled={isReadOnly}
-                    rows={4}
-                    className="w-full"
-                  />
-                </div>
+                {!isReadOnly && (
+                  <div className="space-y-3">
+                    <Label htmlFor="remarks">Remarks</Label>
+                    <Textarea
+                      id="remarks"
+                      value={remarks}
+                      onChange={(e) => setRemarks(e.target.value)}
+                      placeholder="Optional remarks"
+                      disabled={isReadOnly}
+                      rows={4}
+                      className="w-full"
+                    />
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

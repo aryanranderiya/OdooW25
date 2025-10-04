@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -120,6 +121,7 @@ function StatCard({
 }
 
 function ExpensePageContent() {
+  const router = useRouter();
   const { data: expenses = [], error, isLoading } = useExpenses();
   const [summary, setSummary] = useState<ExpenseSummary>({
     toSubmit: { count: 0, totalAmount: 0, currency: "USD" },
@@ -183,12 +185,12 @@ function ExpensePageContent() {
               <Upload className="h-4 w-4" />
               Upload Receipt
             </Button>
-            <Link href="/expenses/create">
-              <Button asChild>
-                <Plus className="h-4 w-4" />
+            <Button asChild>
+              <Link href={ROUTES.CREATE_EXPENSE}>
+                <Plus className="h-4 w-4 mr-2" />
                 New Expense
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
 
@@ -226,7 +228,7 @@ function ExpensePageContent() {
               <div className="p-8 text-center">
                 <p className="text-muted-foreground mb-4">No expenses found</p>
                 <Button asChild>
-                  <Link href="/dashboard/expenses/new">
+                  <Link href={ROUTES.CREATE_EXPENSE}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create your first expense
                   </Link>
@@ -246,7 +248,13 @@ function ExpensePageContent() {
                 </TableHeader>
                 <TableBody>
                   {expenses.map((expense: Expense) => (
-                    <TableRow key={expense.id}>
+                    <TableRow
+                      key={expense.id}
+                      className="cursor-pointer hover:bg-zinc-50 transition-colors"
+                      onClick={() =>
+                        router.push(ROUTES.EXPENSE_DETAIL(expense.id))
+                      }
+                    >
                       <TableCell className="py-4">
                         <div className="flex items-center gap-3">
                           <User className="h-4 w-4 text-zinc-400" />

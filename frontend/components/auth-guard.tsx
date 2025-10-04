@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
+import { ROUTES } from "@/lib/constants";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -21,7 +22,7 @@ export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/login");
+      router.push(ROUTES.LOGIN);
     }
 
     if (
@@ -31,7 +32,7 @@ export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
       user &&
       ROLE_HIERARCHY[user.role] < ROLE_HIERARCHY[requiredRole]
     ) {
-      router.push("/unauthorized");
+      router.push(ROUTES.DASHBOARD);
     }
   }, [isLoading, isAuthenticated, requiredRole, user, router]);
 
