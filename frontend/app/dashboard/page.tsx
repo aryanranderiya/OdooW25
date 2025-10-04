@@ -2,15 +2,11 @@
 
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
+import ExpenseList from "@/components/expense-list";
+import ExpenseSummary from "@/components/expense-summary";
 
 function DashboardContent() {
   const { user, company } = useAuth();
@@ -87,11 +83,7 @@ function DashboardContent() {
                   </Button>
                 )}
                 {user?.role === "ADMIN" && (
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => router.push(ROUTES.USERS)}
-                  >
+                  <Button variant="outline" className="w-full" onClick={() => router.push(ROUTES.USERS)}>
                     Manage Users
                   </Button>
                 )}
@@ -99,6 +91,18 @@ function DashboardContent() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Show expense information for all users who can submit expenses */}
+        {user && (
+          <div className="space-y-6 mt-8">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Your Expenses</h2>
+              <p className="text-muted-foreground">Track and manage your submitted expenses</p>
+            </div>
+            <ExpenseSummary />
+            <ExpenseList limit={10} />
+          </div>
+        )}
       </main>
     </div>
   );

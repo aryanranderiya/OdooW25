@@ -30,22 +30,15 @@ const fetchers = {
 };
 
 // Simple mutation function
-const createExpenseMutator = async (
-  _: string,
-  { arg }: { arg: CreateExpenseData }
-) => {
+const createExpenseMutator = async (_: string, { arg }: { arg: CreateExpenseData }) => {
   return expenseApi.createExpense(arg);
 };
 
 // Hook for fetching expenses
 export function useExpenses(params?: GetExpensesParams) {
-  return useSWR<Expense[]>(
-    params ? ["/expenses", params] : "/expenses",
-    () => fetchers.expenses(params),
-    {
-      revalidateOnFocus: false,
-    }
-  );
+  return useSWR<Expense[]>(params ? ["/expenses", params] : "/expenses", () => fetchers.expenses(params), {
+    revalidateOnFocus: false,
+  });
 }
 
 // Hook for creating expenses
@@ -55,7 +48,12 @@ export function useCreateExpense() {
 
 // Hook for fetching single expense
 export function useExpense(id: string) {
-  return useSWR<Expense>(id ? `/expenses/${id}` : null, () =>
-    expenseApi.getExpense(id)
-  );
+  return useSWR<Expense>(id ? `/expenses/${id}` : null, () => expenseApi.getExpense(id));
+}
+
+// Hook for fetching expense summary
+export function useExpenseSummary() {
+  return useSWR("/expenses/summary", () => expenseApi.getExpenseSummary(), {
+    revalidateOnFocus: false,
+  });
 }
