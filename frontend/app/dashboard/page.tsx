@@ -121,8 +121,8 @@ function DashboardContent() {
 
 export default function DashboardPage() {
   return (
-    <AuthGuard>
-      <DashboardContent />
-    </AuthGuard>
+    // <AuthGuard>
+    <DashboardContent />
+    // </AuthGuard>
   );
 }
