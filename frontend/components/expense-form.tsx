@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CurrencySelect } from "@/components/ui/currency-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatCurrencyDisplay, getCurrencySymbol } from "@/lib/currency";
 import {
   ExpenseFormData,
@@ -27,7 +28,15 @@ import {
   Category,
 } from "@/lib/types/expense";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  Upload,
+  Camera,
+  FileText,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import ReceiptUploadModal from "./receipt-upload-modal";
@@ -39,6 +48,7 @@ import { ROUTES } from "@/lib/constants";
 import { useAuth } from "@/contexts/auth-context";
 import { convertCurrency } from "@/lib/currency-converter";
 import { formatCurrency } from "@/lib/utils";
+import { useOcr } from "@/hooks/use-ocr";
 
 interface ExpenseFormProps {
   initialData?: Partial<ExpenseFormData>;
@@ -62,9 +72,11 @@ export default function ExpenseForm({
   const { company } = useAuth();
   const { categories, isLoading: categoriesLoading } = useCategories();
   const createExpense = useCreateExpense();
+  const { ocrState, uploadAndProcess, resetOcr } = useOcr();
 
   const isViewMode = mode === "view";
   const isCreateMode = mode === "create";
+  const companyCurrency = company?.currency || "USD";
 
   const [formData, setFormData] = useState<ExpenseFormData>({
     title: initialData?.title || "",
@@ -76,10 +88,38 @@ export default function ExpenseForm({
     receipts: initialData?.receipts || [],
   });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [selectedOcrFile, setSelectedOcrFile] = useState<File | null>(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
   const [convertedAmount, setConvertedAmount] = useState<number | null>(null);
   const [isConverting, setIsConverting] = useState(false);
+  const [showOcrCorrection, setShowOcrCorrection] = useState(false);
+
+  useEffect(() => {
+    if (ocrState.data) {
+      setFormData((prev) => ({
+        ...prev,
+        originalAmount: ocrState.data?.amount || prev.originalAmount,
+        title: ocrState.data?.vendor
+          ? `Expense from ${ocrState.data.vendor}`
+          : prev.title,
+        expenseDate: ocrState.data?.date
+          ? new Date(ocrState.data.date)
+          : prev.expenseDate,
+      }));
+
+      if (ocrState.data.category) {
+        const matchingCategory = categories.find((cat) =>
+          cat.name
+            .toLowerCase()
+            .includes(ocrState.data?.category?.toLowerCase() || "")
+        );
+        if (matchingCategory) {
+          setFormData((prev) => ({ ...prev, categoryId: matchingCategory.id }));
+        }
+      }
+    }
+  }, [ocrState.data, categories]);
 
   useEffect(() => {
     async function performConversion() {
@@ -111,6 +151,36 @@ export default function ExpenseForm({
 
   const isReadOnly = isViewMode;
   const showSubmitButton = isCreateMode;
+
+  const handleOcrFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedOcrFile(file);
+      resetOcr();
+    }
+  };
+
+  const handleOcrProcess = async () => {
+    if (!selectedOcrFile) return;
+    await uploadAndProcess(selectedOcrFile);
+  };
+
+  const handleOcrCorrection = (field: string, value: any) => {
+    if (field === "amount") {
+      setFormData((prev) => ({ ...prev, originalAmount: value }));
+    } else if (field === "vendor") {
+      setFormData((prev) => ({ ...prev, title: `Expense from ${value}` }));
+    } else if (field === "date") {
+      setFormData((prev) => ({ ...prev, expenseDate: value }));
+    } else if (field === "category") {
+      const matchingCategory = categories.find((cat) =>
+        cat.name.toLowerCase().includes(value?.toLowerCase() || "")
+      );
+      if (matchingCategory) {
+        setFormData((prev) => ({ ...prev, categoryId: matchingCategory.id }));
+      }
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -310,13 +380,204 @@ export default function ExpenseForm({
           <>
             {/* Header Controls */}
             <div className="flex items-center justify-between">
-              <ReceiptUploadModal
-                selectedFiles={selectedFiles}
-                onFilesChange={setSelectedFiles}
-                disabled={isReadOnly}
-              />
+              <div></div>
               <StatusFlow currentStatus={currentStatus} />
             </div>
+
+            {/* OCR Receipt Upload Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Camera className="h-5 w-5" />
+                  Receipt Upload & OCR Processing
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={handleOcrFileSelect}
+                    className="hidden"
+                    id="ocr-receipt-upload"
+                  />
+                  <label
+                    htmlFor="ocr-receipt-upload"
+                    className="cursor-pointer"
+                  >
+                    <Upload className="h-10 w-10 mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600">
+                      Click to upload receipt or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      PNG, JPG, PDF up to 10MB
+                    </p>
+                  </label>
+                </div>
+
+                {selectedOcrFile && (
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm font-medium">
+                        {selectedOcrFile.name}
+                      </span>
+                    </div>
+                    <Button
+                      onClick={handleOcrProcess}
+                      disabled={ocrState.isProcessing}
+                      size="sm"
+                    >
+                      {ocrState.isProcessing ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        "Process with OCR"
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {/* OCR Results */}
+                {ocrState.data && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      <span className="font-medium">
+                        OCR Processing Complete
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        Confidence: {Math.round(ocrState.confidence * 100)}%
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+                      <div>
+                        <Label className="text-sm font-medium">
+                          Extracted Amount
+                        </Label>
+                        <p className="text-lg font-semibold">
+                          ${ocrState.data.amount?.toFixed(2) || "Not found"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Vendor</Label>
+                        <p className="text-lg font-semibold">
+                          {ocrState.data.vendor || "Not found"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Date</Label>
+                        <p className="text-lg font-semibold">
+                          {ocrState.data.date
+                            ? format(
+                                new Date(ocrState.data.date),
+                                "MMM dd, yyyy"
+                              )
+                            : "Not found"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Category</Label>
+                        <p className="text-lg font-semibold">
+                          {ocrState.data.category || "Not found"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowOcrCorrection(!showOcrCorrection)}
+                    >
+                      {showOcrCorrection ? "Hide" : "Correct"} OCR Data
+                    </Button>
+
+                    {showOcrCorrection && (
+                      <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg">
+                        <div>
+                          <Label>Amount</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={ocrState.data.amount || ""}
+                            onChange={(e) =>
+                              handleOcrCorrection(
+                                "amount",
+                                parseFloat(e.target.value)
+                              )
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label>Vendor</Label>
+                          <Input
+                            value={ocrState.data.vendor || ""}
+                            onChange={(e) =>
+                              handleOcrCorrection("vendor", e.target.value)
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label>Date</Label>
+                          <Input
+                            type="date"
+                            value={
+                              ocrState.data.date
+                                ? format(
+                                    new Date(ocrState.data.date),
+                                    "yyyy-MM-dd"
+                                  )
+                                : ""
+                            }
+                            onChange={(e) =>
+                              handleOcrCorrection(
+                                "date",
+                                new Date(e.target.value)
+                              )
+                            }
+                          />
+                        </div>
+                        <div>
+                          <Label>Category</Label>
+                          <Input
+                            value={ocrState.data.category || ""}
+                            onChange={(e) =>
+                              handleOcrCorrection("category", e.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* OCR Errors and Warnings */}
+                {ocrState.errors.length > 0 && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {ocrState.errors.map((error, index) => (
+                        <div key={index}>{error}</div>
+                      ))}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {ocrState.warnings.length > 0 && (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {ocrState.warnings.map((warning, index) => (
+                        <div key={index}>{warning}</div>
+                      ))}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
 
             <form onSubmit={handleSubmit} className="space-y-8">
               <Card>
@@ -476,12 +737,38 @@ export default function ExpenseForm({
                         />
                       </div>
                       {formData.originalAmount > 0 && (
-                        <p className="text-sm text-muted-foreground">
-                          {formatCurrencyDisplay(
-                            formData.originalCurrency,
-                            formData.originalAmount
+                        <div className="space-y-2">
+                          <p className="text-sm text-muted-foreground">
+                            {formatCurrencyDisplay(
+                              formData.originalCurrency,
+                              formData.originalAmount
+                            )}
+                          </p>
+                          {formData.originalCurrency !== companyCurrency && (
+                            <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                              <div className="flex-1">
+                                {isConverting ? (
+                                  <p className="text-sm text-blue-600 font-medium">
+                                    Converting...
+                                  </p>
+                                ) : convertedAmount !== null ? (
+                                  <>
+                                    <p className="text-sm text-blue-900 font-semibold">
+                                      ≈{" "}
+                                      {formatCurrency(
+                                        convertedAmount,
+                                        companyCurrency
+                                      )}
+                                    </p>
+                                    <p className="text-xs text-blue-600 mt-0.5">
+                                      In {companyCurrency} (Company Currency)
+                                    </p>
+                                  </>
+                                ) : null}
+                              </div>
+                            </div>
                           )}
-                        </p>
+                        </div>
                       )}
                     </div>
 

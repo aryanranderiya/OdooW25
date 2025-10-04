@@ -1,14 +1,12 @@
 "use client";
 
 import { AuthGuard } from "@/components/auth-guard";
-import OcrExpenseForm from "@/components/ocr-expense-form";
+import ExpenseForm from "@/components/expense-form";
 
 export default function CreateExpensePage() {
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-gray-50">
-        <OcrExpenseForm />
-      </div>
+      <ExpenseForm mode="create" />
     </AuthGuard>
   );
 }
