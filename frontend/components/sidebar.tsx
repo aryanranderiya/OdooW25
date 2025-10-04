@@ -116,10 +116,16 @@ const CreateExpenseButton = () => {
 
 const Logo = () => {
   const { open, animate } = useSidebar();
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push(ROUTES.DASHBOARD);
+  };
 
   return (
     <motion.div
-      className="flex items-center gap-3 px-3 py-2 relative z-20"
+      onClick={handleClick}
+      className="flex items-center gap-3 px-3 py-2 relative z-20 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
       animate={{
         justifyContent: animate
           ? open

@@ -366,63 +366,43 @@ export default function ExpenseForm({
           <>
             {/* Header Controls */}
             <div className="flex items-center justify-between">
-              <div></div>
-              <StatusFlow currentStatus={currentStatus} />
-            </div>
-
-            {/* OCR Receipt Upload Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Camera className="h-5 w-5" />
-                  Receipt Upload & OCR Processing
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="border-2 border-dashed border-zinc-300 rounded-lg p-6 text-center hover:border-zinc-400 transition-colors">
-                  <input
-                    type="file"
-                    accept="image/*,.pdf"
-                    onChange={handleOcrFileSelect}
-                    className="hidden"
-                    id="ocr-receipt-upload"
-                  />
+              <div className="flex items-center gap-3">
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={handleOcrFileSelect}
+                  className="hidden"
+                  id="ocr-receipt-upload"
+                />
+                <Button variant="outline" asChild className="rounded-md">
                   <label
                     htmlFor="ocr-receipt-upload"
                     className="cursor-pointer"
                   >
-                    <Upload className="h-10 w-10 mx-auto text-zinc-400 mb-2" />
-                    <p className="text-sm text-zinc-600 font-medium">
-                      Click to upload receipt or drag and drop
-                    </p>
-                    <p className="text-xs text-zinc-500 mt-1">
-                      PNG, JPG, PDF up to 10MB · OCR processes automatically
-                    </p>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Receipt
                   </label>
-                </div>
-
+                </Button>
                 {selectedOcrFile && (
-                  <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-lg border border-zinc-200">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-zinc-500" />
-                      <span className="text-sm font-medium text-zinc-900">
-                        {selectedOcrFile.name}
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 rounded-full">
+                    <FileText className="h-4 w-4 text-zinc-500" />
+                    <span className="text-sm font-medium text-zinc-900">
+                      {selectedOcrFile.name}
+                    </span>
                     {ocrState.isProcessing && (
-                      <div className="flex items-center gap-2 text-zinc-600">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="text-sm font-medium">
-                          Processing...
-                        </span>
-                      </div>
+                      <Loader2 className="h-3 w-3 animate-spin text-zinc-600" />
                     )}
                   </div>
                 )}
+              </div>
+              <StatusFlow currentStatus={currentStatus} />
+            </div>
 
-                {/* OCR Results */}
-                {ocrState.data && (
-                  <div className="space-y-3">
+            {/* OCR Results Card - Only show when data is available */}
+            {ocrState.data && (
+              <Card>
+                <CardContent>
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="h-5 w-5 text-green-500" />
@@ -443,28 +423,28 @@ export default function ExpenseForm({
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 p-4 bg-zinc-50 border border-zinc-200 rounded-lg">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-zinc-50 border border-zinc-200 rounded-lg">
                       <div>
-                        <Label className="text-sm font-medium text-zinc-500">
+                        <Label className="text-xs font-medium text-zinc-500">
                           Extracted Amount
                         </Label>
-                        <p className="text-lg font-semibold text-zinc-900">
+                        <p className="text-base font-semibold text-zinc-900 mt-1">
                           ${ocrState.data.amount?.toFixed(2) || "Not found"}
                         </p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-zinc-500">
+                        <Label className="text-xs font-medium text-zinc-500">
                           Vendor
                         </Label>
-                        <p className="text-lg font-semibold text-zinc-900">
+                        <p className="text-base font-semibold text-zinc-900 mt-1">
                           {ocrState.data.vendor || "Not found"}
                         </p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-zinc-500">
+                        <Label className="text-xs font-medium text-zinc-500">
                           Date
                         </Label>
-                        <p className="text-lg font-semibold text-zinc-900">
+                        <p className="text-base font-semibold text-zinc-900 mt-1">
                           {ocrState.data.date
                             ? format(
                                 new Date(ocrState.data.date),
@@ -474,41 +454,41 @@ export default function ExpenseForm({
                         </p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-zinc-500">
+                        <Label className="text-xs font-medium text-zinc-500">
                           Category
                         </Label>
-                        <p className="text-lg font-semibold text-zinc-900">
+                        <p className="text-base font-semibold text-zinc-900 mt-1">
                           {ocrState.data.category || "Not found"}
                         </p>
                       </div>
                     </div>
                   </div>
-                )}
+                </CardContent>
+              </Card>
+            )}
 
-                {/* OCR Errors and Warnings */}
-                {ocrState.errors.length > 0 && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      {ocrState.errors.map((error, index) => (
-                        <div key={index}>{error}</div>
-                      ))}
-                    </AlertDescription>
-                  </Alert>
-                )}
+            {/* OCR Errors and Warnings */}
+            {ocrState.errors.length > 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {ocrState.errors.map((error, index) => (
+                    <div key={index}>{error}</div>
+                  ))}
+                </AlertDescription>
+              </Alert>
+            )}
 
-                {ocrState.warnings.length > 0 && (
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      {ocrState.warnings.map((warning, index) => (
-                        <div key={index}>{warning}</div>
-                      ))}
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
+            {ocrState.warnings.length > 0 && (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {ocrState.warnings.map((warning, index) => (
+                    <div key={index}>{warning}</div>
+                  ))}
+                </AlertDescription>
+              </Alert>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-8">
               <Card>

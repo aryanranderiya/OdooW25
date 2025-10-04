@@ -131,6 +131,9 @@ function ExpensePageContent() {
   const router = useRouter();
   const { company } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<ExpenseStatus | "ALL">(
+    "ALL"
+  );
   const limit = 50;
 
   const {
@@ -145,6 +148,12 @@ function ExpensePageContent() {
   // Stabilize the expenses array to prevent unnecessary re-renders from SWR
   const expenses = useMemo(() => expensesData?.expenses || [], [expensesData]);
   const pagination = expensesData?.pagination;
+
+  // Filter expenses by status
+  const filteredExpenses = useMemo(() => {
+    if (statusFilter === "ALL") return expenses;
+    return expenses.filter((expense) => expense.status === statusFilter);
+  }, [expenses, statusFilter]);
 
   // Stabilize the company currency to prevent unnecessary re-renders
   const companyCurrency = useMemo(
@@ -216,14 +225,10 @@ function ExpensePageContent() {
             </p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline">
-              <Upload className="h-4 w-4" />
-              Upload Receipt
-            </Button>
             <Button asChild>
               <Link href={ROUTES.CREATE_EXPENSE}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Expense
+                <Plus className="h-4 w-4" />
+                Create New Expense
               </Link>
             </Button>
           </div>
@@ -261,14 +266,60 @@ function ExpensePageContent() {
           </div>
         )}
 
+        {/* Filter Buttons */}
+        <div className="flex items-center gap-2 mb-4">
+          <Button
+            variant={statusFilter === "ALL" ? "default" : "outline"}
+            onClick={() => setStatusFilter("ALL")}
+            className="rounded-full"
+          >
+            All
+          </Button>
+          <Button
+            variant={
+              statusFilter === ExpenseStatus.DRAFT ? "default" : "outline"
+            }
+            onClick={() => setStatusFilter(ExpenseStatus.DRAFT)}
+            className="rounded-full"
+          >
+            Draft
+          </Button>
+          <Button
+            variant={
+              statusFilter === ExpenseStatus.PENDING_APPROVAL
+                ? "default"
+                : "outline"
+            }
+            onClick={() => setStatusFilter(ExpenseStatus.PENDING_APPROVAL)}
+            className="rounded-full"
+          >
+            Waiting Approval
+          </Button>
+          <Button
+            variant={
+              statusFilter === ExpenseStatus.APPROVED ? "default" : "outline"
+            }
+            onClick={() => setStatusFilter(ExpenseStatus.APPROVED)}
+            className="rounded-full"
+          >
+            Approved
+          </Button>
+        </div>
+
         {/* Expenses Table */}
         <Card>
           <CardContent>
             {isLoading ? (
               <div className="p-8 text-center">Loading expenses...</div>
-            ) : expenses.length === 0 ? (
+            ) : filteredExpenses.length === 0 ? (
               <div className="p-8 text-center">
-                <p className="text-muted-foreground mb-4">No expenses found</p>
+                <p className="text-muted-foreground mb-4">
+                  {statusFilter === "ALL"
+                    ? "No expenses found"
+                    : `No ${statusFilter
+                        .toLowerCase()
+                        .replace(/_/g, " ")} expenses found`}
+                </p>
                 <Button asChild>
                   <Link href={ROUTES.CREATE_EXPENSE}>
                     <Plus className="h-4 w-4 mr-2" />
@@ -289,7 +340,7 @@ function ExpensePageContent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {expenses.map((expense: Expense) => (
+                  {filteredExpenses.map((expense: Expense) => (
                     <TableRow
                       key={expense.id}
                       className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
