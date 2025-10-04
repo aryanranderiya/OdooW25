@@ -1,6 +1,5 @@
 "use client";
 
-import { useAuth } from "@/contexts/auth-context";
 import { AuthGuard } from "@/components/auth-guard";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DollarSign } from "lucide-react";
+import { CardIcon } from "@/components/ui/icons";
+import { useAuth } from "@/contexts/auth-context";
 
 function DashboardContent() {
   const { user, company, logout } = useAuth();
@@ -21,7 +21,7 @@ function DashboardContent() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
-              <DollarSign className="size-5" />
+              <CardIcon className="size-5" />
             </div>
             <span className="text-lg font-semibold">Expense Management</span>
           </div>
