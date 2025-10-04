@@ -297,7 +297,7 @@ export class ApprovalsService {
           break;
 
         case ApprovalRuleType.SEQUENTIAL:
-          canApprove = await this.canApproveSequential(userId, expense);
+          canApprove = await this.canApproveSequential(userId, expense, rule);
           break;
 
         case ApprovalRuleType.HYBRID:
@@ -360,24 +360,80 @@ export class ApprovalsService {
   private async canApproveSequential(
     userId: string,
     expense: any,
+    rule?: any,
   ): Promise<boolean> {
-    // Build the manager hierarchy for this expense
-    const managerChain = await this.buildManagerHierarchy(expense.submitter.id);
+    // If rule is not passed, find the matching rule for this expense
+    if (!rule) {
+      const approvalRules = await this.prisma.approvalRule.findMany({
+        where: {
+          companyId: expense.companyId,
+          isActive: true,
+          ruleType: ApprovalRuleType.SEQUENTIAL,
+        },
+        include: {
+          approvalSteps: {
+            orderBy: { sequence: 'asc' },
+          },
+        },
+      });
 
-    // Find user's position in the chain
-    const userIndex = managerChain.findIndex((id) => id === userId);
-    if (userIndex === -1) return false;
+      const matchingRules = this.findMatchingRules(expense, approvalRules);
+      if (matchingRules.length === 0) return false;
+      rule = matchingRules[0];
+    }
 
-    // Check if all previous managers have approved
-    for (let i = 0; i < userIndex; i++) {
-      const previousManagerId = managerChain[i];
+    // Get the rule with its approval steps
+    const ruleWithSteps = await this.prisma.approvalRule.findUnique({
+      where: { id: rule.id },
+      include: {
+        approvalSteps: {
+          orderBy: { sequence: 'asc' },
+        },
+      },
+    });
+
+    if (
+      !ruleWithSteps?.approvalSteps ||
+      ruleWithSteps.approvalSteps.length === 0
+    ) {
+      // Fallback to manager hierarchy if no steps defined
+      const managerChain = await this.buildManagerHierarchy(
+        expense.submitter.id,
+      );
+      const userIndex = managerChain.findIndex((id) => id === userId);
+      if (userIndex === -1) return false;
+
+      for (let i = 0; i < userIndex; i++) {
+        const previousManagerId = managerChain[i];
+        const hasApproved = expense.approvalActions.some(
+          (action: any) =>
+            action.approverId === previousManagerId &&
+            action.status === ApprovalStatus.APPROVED,
+        );
+        if (!hasApproved) return false;
+      }
+      return true;
+    }
+
+    // Find user's position in the approval steps
+    const userStepIndex = ruleWithSteps.approvalSteps.findIndex(
+      (step) => step.approverId === userId,
+    );
+
+    if (userStepIndex === -1) return false;
+
+    // Check if all previous steps have been approved
+    for (let i = 0; i < userStepIndex; i++) {
+      const previousStep = ruleWithSteps.approvalSteps[i];
       const hasApproved = expense.approvalActions.some(
         (action: any) =>
-          action.approverId === previousManagerId &&
+          action.approverId === previousStep.approverId &&
           action.status === ApprovalStatus.APPROVED,
       );
 
-      if (!hasApproved) return false;
+      if (!hasApproved && previousStep.isRequired) {
+        return false;
+      }
     }
 
     return true;
