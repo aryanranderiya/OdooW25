@@ -31,23 +31,21 @@ export interface ExpensesResponse {
 // Fetcher functions that handle the paginated response structure
 const fetchers = {
   expenses: async (params?: GetExpensesParams) => {
-    const response = await expenseApi.getExpenses(params);
     // Backend returns { expenses: [...], pagination: {...} }
-    // Extract just the expenses array for the UI
-    return response.expenses || [];
+    // Return the full response with pagination
+    return await expenseApi.getExpenses(params);
   },
-};
-
-// Simple mutation function
-const createExpenseMutator = async (_: string, { arg }: { arg: CreateExpenseData }) => {
-  return expenseApi.createExpense(arg);
 };
 
 // Hook for fetching expenses
 export function useExpenses(params?: GetExpensesParams) {
-  return useSWR<Expense[]>(params ? ["/expenses", params] : "/expenses", () => fetchers.expenses(params), {
-    revalidateOnFocus: false,
-  });
+  return useSWR<ExpensesResponse>(
+    params ? ["/expenses", params] : "/expenses",
+    () => fetchers.expenses(params),
+    {
+      revalidateOnFocus: false,
+    }
+  );
 }
 
 // Simple function for creating expenses
@@ -57,7 +55,9 @@ export async function createExpense(data: CreateExpenseData) {
 
 // Hook for fetching single expense
 export function useExpense(id: string) {
-  return useSWR<Expense>(id ? `/expenses/${id}` : null, () => expenseApi.getExpense(id));
+  return useSWR<Expense>(id ? `/expenses/${id}` : null, () =>
+    expenseApi.getExpense(id)
+  );
 }
 
 // Hook for fetching expense summary

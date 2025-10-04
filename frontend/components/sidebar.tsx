@@ -85,7 +85,7 @@ export function DasSidebar() {
         </div>
       </div>
       <div className="flex flex-col gap-1 border-t border-neutral-200 dark:border-neutral-700 pt-4">
-        {bottomLinks.map((link, idx) => (
+        {managerLinks.map((link, idx) => (
           <SidebarLink key={idx} link={link} />
         ))}
       </div>
@@ -107,7 +107,7 @@ const CreateExpenseButton = () => {
       animate={{
         width: animate ? (open ? "100%" : "44px") : "100%",
       }}
-      className="group relative mt-6 flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:shadow hover:shadow-blue-500/30  active:scale-[0.98] dark:from-blue-600 dark:to-blue-700 dark:shadow-blue-600/20"
+      className="group relative mt-6 flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:shadow hover:shadow-blue-500/30  active:scale-[0.98] dark:from-blue-600 dark:to-blue-700 dark:shadow-blue-600/20"
     >
       <IconPlus className="h-5 w-5 flex-shrink-0" strokeWidth={2.5} />
       <motion.span
