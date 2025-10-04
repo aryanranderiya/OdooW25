@@ -396,23 +396,7 @@ export class ApprovalsService {
       !ruleWithSteps?.approvalSteps ||
       ruleWithSteps.approvalSteps.length === 0
     ) {
-      // Fallback to manager hierarchy if no steps defined
-      const managerChain = await this.buildManagerHierarchy(
-        expense.submitter.id,
-      );
-      const userIndex = managerChain.findIndex((id) => id === userId);
-      if (userIndex === -1) return false;
-
-      for (let i = 0; i < userIndex; i++) {
-        const previousManagerId = managerChain[i];
-        const hasApproved = expense.approvalActions.some(
-          (action: any) =>
-            action.approverId === previousManagerId &&
-            action.status === ApprovalStatus.APPROVED,
-        );
-        if (!hasApproved) return false;
-      }
-      return true;
+      return false;
     }
 
     // Find user's position in the approval steps
@@ -716,10 +700,32 @@ export class ApprovalsService {
 
     switch (rule.ruleType) {
       case ApprovalRuleType.SEQUENTIAL: {
-        const managerChain = await this.buildManagerHierarchy(
-          expense.submitter.id,
+        // Get the rule with its approval steps
+        const ruleWithSteps = await this.prisma.approvalRule.findUnique({
+          where: { id: rule.id },
+          include: {
+            approvalSteps: true,
+          },
+        });
+
+        if (
+          !ruleWithSteps?.approvalSteps ||
+          ruleWithSteps.approvalSteps.length === 0
+        ) {
+          return false;
+        }
+
+        // Check if all required steps have been approved
+        const requiredSteps = ruleWithSteps.approvalSteps.filter(
+          (step) => step.isRequired,
         );
-        return approvedCount >= managerChain.length;
+        const requiredApprovedCount = requiredSteps.filter((step) =>
+          expense.approvalActions.some(
+            (action: any) => action.approverId === step.approverId,
+          ),
+        ).length;
+
+        return requiredApprovedCount >= requiredSteps.length;
       }
 
       case ApprovalRuleType.PERCENTAGE: {
@@ -844,12 +850,10 @@ export class ApprovalsService {
 
     switch (rule.ruleType) {
       case ApprovalRuleType.SEQUENTIAL: {
-        const managerChain = await this.buildManagerHierarchy(
-          expense.submitter.id,
-        );
-        // Notify only first manager in sequential
-        if (managerChain.length > 0) {
-          approverIds = [managerChain[0]];
+        // Notify only the first step approver in sequential
+        if (rule.approvalSteps && rule.approvalSteps.length > 0) {
+          const firstStep = rule.approvalSteps[0];
+          approverIds = [firstStep.approverId];
         }
         break;
       }
