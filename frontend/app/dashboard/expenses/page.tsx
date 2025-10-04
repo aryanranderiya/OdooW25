@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Expense, ExpenseStatus, ExpenseSummary } from "@/lib/types/expense";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { ROUTES } from "@/lib/constants";
 
 // Mock data - replace with actual API calls
 const mockExpenses: Expense[] = [
@@ -245,7 +246,7 @@ export default function ExpensesPage() {
               Upload Receipt
             </Button>
             <Button asChild>
-              <Link href="/expenses/create">
+              <Link href={ROUTES.CREATE_EXPENSE}>
                 <Plus className="h-4 w-4" />
                 New Expense
               </Link>

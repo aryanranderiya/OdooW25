@@ -5,6 +5,7 @@ import { CardIcon } from "@/components/ui/icons";
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { ROUTES } from "@/lib/constants";
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -12,7 +13,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.push("/dashboard");
+      router.push(ROUTES.DASHBOARD);
     }
   }, [isAuthenticated, isLoading, router]);
 
@@ -41,13 +42,13 @@ export default function Home() {
         </p>
 
         <div className="flex flex-col gap-4 sm:flex-row">
-          <Button size="lg" onClick={() => router.push("/signup")}>
+          <Button size="lg" onClick={() => router.push(ROUTES.SIGNUP)}>
             Get Started
           </Button>
           <Button
             size="lg"
             variant="outline"
-            onClick={() => router.push("/login")}
+            onClick={() => router.push(ROUTES.LOGIN)}
           >
             Sign In
           </Button>

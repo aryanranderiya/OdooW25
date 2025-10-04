@@ -11,40 +11,41 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 import { CardIcon } from "./ui/icons";
+import { ROUTES } from "@/lib/constants";
 
 export function DasSidebar() {
   const links = [
     {
       label: "Dashboard",
-      href: "/dashboard",
+      href: ROUTES.DASHBOARD,
       icon: (
         <IconDashboard className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
     {
       label: "List Expenses",
-      href: "/expenses",
+      href: ROUTES.EXPENSES,
       icon: (
         <IconReceipt className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
     {
       label: "Create Expense",
-      href: "/expenses/create",
+      href: ROUTES.CREATE_EXPENSE,
       icon: (
         <IconPlus className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
     {
       label: "Users",
-      href: "/admin/users",
+      href: ROUTES.USERS,
       icon: (
         <IconUsers className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
     {
       label: "Settings",
-      href: "/admin/settings",
+      href: ROUTES.SETTINGS,
       icon: (
         <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),

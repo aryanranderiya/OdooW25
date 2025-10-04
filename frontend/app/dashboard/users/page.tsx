@@ -14,6 +14,7 @@ import { UserManagementHeader } from "@/components/users/user-management-header"
 import { UsersCard } from "@/components/users/users-card";
 import { UserFilters } from "@/components/users/user-filters";
 import { UserTable } from "@/components/users/user-table";
+import { ROUTES } from "@/lib/constants";
 
 function UserManagementContent() {
   const { user: currentUser, company, logout } = useAuth();
@@ -29,7 +30,7 @@ function UserManagementContent() {
 
   useEffect(() => {
     if (currentUser?.role !== "ADMIN") {
-      router.push("/dashboard");
+      router.push(ROUTES.DASHBOARD);
       toast.error("Access denied. Admin only.");
     }
   }, [currentUser, router]);
@@ -101,12 +102,6 @@ function UserManagementContent() {
 
   return (
     <div className="min-h-screen bg-muted/40">
-      <UserManagementHeader
-        userName={currentUser?.name || ""}
-        userRole={currentUser?.role || ""}
-        onLogout={logout}
-      />
-
       <main className="container mx-auto p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">User Management</h1>

@@ -3,7 +3,11 @@ export const ROUTES = {
   LOGIN: "/login",
   SIGNUP: "/signup",
   DASHBOARD: "/dashboard",
-  USERS: "/users",
+  PROFILE: "/dashboard/profile",
+  USERS: "/dashboard/users",
+  SETTINGS: "/dashboard/admin/settings",
+  EXPENSES: "/dashboard/expenses",
+  CREATE_EXPENSE: "/dashboard/expenses/create",
 } as const;
 
 export const AUTH_ROUTES = [ROUTES.LOGIN, ROUTES.SIGNUP] as const;
