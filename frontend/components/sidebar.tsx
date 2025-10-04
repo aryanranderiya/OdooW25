@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Sidebar,
   SidebarBody,
@@ -13,9 +15,12 @@ import {
 import { CardIcon } from "./ui/icons";
 import { ROUTES } from "@/lib/constants";
 import { CheckCheck } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
 
 export function DasSidebar() {
-  const links = [
+  const { user } = useAuth();
+
+  const baseLinks = [
     {
       label: "Dashboard",
       href: ROUTES.DASHBOARD,
@@ -37,6 +42,9 @@ export function DasSidebar() {
         <IconPlus className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
+  ];
+
+  const adminLinks = [
     {
       label: "Users",
       href: ROUTES.USERS,
@@ -44,6 +52,9 @@ export function DasSidebar() {
         <IconUsers className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
+  ];
+
+  const commonLinks = [
     {
       label: "Settings",
       href: ROUTES.SETTINGS,
@@ -58,6 +69,12 @@ export function DasSidebar() {
         <CheckCheck className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
+  ];
+
+  const links = [
+    ...baseLinks,
+    ...(user?.role === "ADMIN" ? adminLinks : []),
+    ...commonLinks,
   ];
 
   return (
