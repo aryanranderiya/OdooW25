@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import countries from "world-countries";
 
 // Transform country data for our select component
@@ -39,12 +41,15 @@ export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const { signup } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
+    companyName: "",
   });
 
   const handleInputChange =
@@ -53,25 +58,43 @@ export function SignupForm({
       setFormData((prev) => ({ ...prev, [field]: e.target.value }));
     };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Basic validation
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match!");
+      toast.error("Passwords don't match!");
       return;
     }
 
     if (!selectedCountry) {
-      alert("Please select a country!");
+      toast.error("Please select a country!");
       return;
     }
 
-    // Handle signup logic here
-    console.log("Signup data:", {
-      ...formData,
-      country: selectedCountry,
-    });
+    if (!formData.companyName.trim()) {
+      toast.error("Please enter your company name!");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await signup({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        companyName: formData.companyName,
+        country: selectedCountry,
+      });
+      toast.success("Account created successfully!");
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message || "Signup failed. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -94,6 +117,7 @@ export function SignupForm({
                   placeholder="John Doe"
                   value={formData.name}
                   onChange={handleInputChange("name")}
+                  disabled={isLoading}
                   required
                 />
               </Field>
@@ -106,30 +130,20 @@ export function SignupForm({
                   placeholder="m@example.com"
                   value={formData.email}
                   onChange={handleInputChange("email")}
+                  disabled={isLoading}
                   required
                 />
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="password">Password</FieldLabel>
+                <FieldLabel htmlFor="companyName">Company Name</FieldLabel>
                 <Input
-                  id="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleInputChange("password")}
-                  required
-                />
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="confirmPassword">
-                  Confirm Password
-                </FieldLabel>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange("confirmPassword")}
+                  id="companyName"
+                  type="text"
+                  placeholder="Acme Inc."
+                  value={formData.companyName}
+                  onChange={handleInputChange("companyName")}
+                  disabled={isLoading}
                   required
                 />
               </Field>
@@ -139,6 +153,7 @@ export function SignupForm({
                 <Select
                   value={selectedCountry}
                   onValueChange={setSelectedCountry}
+                  disabled={isLoading}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select your country" />
@@ -157,8 +172,34 @@ export function SignupForm({
               </Field>
 
               <Field>
-                <Button type="submit" className="w-full">
-                  Sign Up
+                <FieldLabel htmlFor="password">Password</FieldLabel>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleInputChange("password")}
+                  disabled={isLoading}
+                  required
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="confirmPassword">
+                  Confirm Password
+                </FieldLabel>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange("confirmPassword")}
+                  disabled={isLoading}
+                  required
+                />
+              </Field>
+
+              <Field>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Creating account..." : "Sign Up"}
                 </Button>
                 <FieldDescription className="text-center">
                   Already have an account?{" "}
