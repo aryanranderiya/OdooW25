@@ -8,6 +8,7 @@ export const ROUTES = {
   SETTINGS: "/dashboard/admin/settings",
   EXPENSES: "/dashboard/expenses",
   CREATE_EXPENSE: "/dashboard/expenses/create",
+  ADMIN: "/dashboard/admin",
 } as const;
 
 export const AUTH_ROUTES = [ROUTES.LOGIN, ROUTES.SIGNUP] as const;

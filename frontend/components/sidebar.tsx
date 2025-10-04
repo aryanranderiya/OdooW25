@@ -12,6 +12,7 @@ import {
 } from "@tabler/icons-react";
 import { CardIcon } from "./ui/icons";
 import { ROUTES } from "@/lib/constants";
+import { CheckCheck } from "lucide-react";
 
 export function DasSidebar() {
   const links = [
@@ -48,6 +49,13 @@ export function DasSidebar() {
       href: ROUTES.SETTINGS,
       icon: (
         <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+      ),
+    },
+    {
+      label: "Approval",
+      href: ROUTES.ADMIN,
+      icon: (
+        <CheckCheck className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
   ];
