@@ -3,6 +3,7 @@ import {
   SidebarBody,
   SidebarLink,
 } from "@/components/ui/sidebar-internal";
+<<<<<<< HEAD
 import {
   IconDashboard,
   IconUsers,
@@ -11,6 +12,10 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 import { CardIcon } from "./ui/icons";
+=======
+import { IconDashboard, IconUsers, IconSettings } from "@tabler/icons-react";
+import { DollarSign } from "lucide-react";
+>>>>>>> 3cfe4c7 (feat: better dashboard layout)
 
 export function DasSidebar() {
   const links = [
@@ -69,6 +74,7 @@ export function DasSidebar() {
 
 export const Logo = () => {
   return (
+<<<<<<< HEAD
     <div className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20">
       <div className="h-6 w-6 flex-shrink-0">
         <CardIcon />
@@ -76,6 +82,15 @@ export const Logo = () => {
       <span className="font-medium text-black dark:text-white whitespace-pre">
         Expense Management
       </span>
+=======
+    <div className="container mx-auto flex h-16 items-center justify-between">
+      <div className="flex items-center gap-2">
+        <div className="bg-primary text-primary-foreground flex size-7 items-center justify-center rounded-md">
+          <DollarSign className="size-5" />
+        </div>
+        <span>Atom</span>
+      </div>
+>>>>>>> 3cfe4c7 (feat: better dashboard layout)
     </div>
   );
 };
