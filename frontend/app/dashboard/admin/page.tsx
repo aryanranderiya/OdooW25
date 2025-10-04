@@ -1,108 +1,155 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ApprovalRulesList } from "@/components/approval-rules/approval-rules-list";
+import { ApprovalRuleForm } from "@/components/approval-rules/approval-rule-form";
+import { PendingApprovalsList } from "@/components/approval-rules/pending-approvals-list";
 import {
-  PendingApprovalsTab,
-  ApprovalChainsTab,
-  NotificationsTab,
-  EscalationSettingsTab,
-  ApprovalAPI,
-  ExpenseApproval,
-  ApprovalChain,
-  ApprovalAction,
-  NotificationSettings,
-  EscalationSettings,
-} from "@/features/admin/components";
+  approvalApi,
+  ApprovalRule,
+  PendingApproval,
+  CreateApprovalRuleDto,
+} from "@/lib/approval-api";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Page() {
-  // State for data
-  const [pendingApprovals, setPendingApprovals] = useState<ExpenseApproval[]>(
+  const [approvalRules, setApprovalRules] = useState<ApprovalRule[]>([]);
+  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>(
     []
   );
-  const [approvalChains, setApprovalChains] = useState<ApprovalChain[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showRuleForm, setShowRuleForm] = useState(false);
+  const [editingRule, setEditingRule] = useState<ApprovalRule | null>(null);
+  const { toast } = useToast();
 
-  // State for settings
-  const [notificationSettings, setNotificationSettings] =
-    useState<NotificationSettings>({
-      emailNotifications: true,
-      inAppNotifications: true,
-      escalationReminders: true,
-    });
-
-  const [escalationSettings, setEscalationSettings] =
-    useState<EscalationSettings>({
-      defaultEscalationDays: 3,
-      maxEscalationLevels: 5,
-      weekendEscalation: false,
-      autoApproveOnFinalEscalation: false,
-    });
-
-  // Load initial data
   useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const [rules, approvals] = await Promise.all([
+          approvalApi.getRules(),
+          approvalApi.getPendingApprovals(),
+        ]);
+        setApprovalRules(rules);
+        setPendingApprovals(approvals);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load approval data",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     loadData();
   }, []);
 
-  const loadData = async () => {
-    setIsLoading(true);
+  const handleCreateRule = () => {
+    setEditingRule(null);
+    setShowRuleForm(true);
+  };
+
+  const handleEditRule = (rule: ApprovalRule) => {
+    setEditingRule(rule);
+    setShowRuleForm(true);
+  };
+
+  const handleDeleteRule = async (ruleId: string) => {
+    if (!confirm("Are you sure you want to delete this approval rule?")) {
+      return;
+    }
+
     try {
-      const [approvals, chains] = await Promise.all([
-        ApprovalAPI.getPendingApprovals(),
-        ApprovalAPI.getApprovalChains(),
-      ]);
-      setPendingApprovals(approvals);
-      setApprovalChains(chains);
+      await approvalApi.deleteRule(ruleId);
+      setApprovalRules((prev) => prev.filter((rule) => rule.id !== ruleId));
+      toast({
+        title: "Success",
+        description: "Approval rule deleted successfully",
+      });
     } catch (error) {
-      console.error("Error loading data:", error);
-    } finally {
-      setIsLoading(false);
+      console.error("Error deleting approval rule:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete approval rule",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleApprovalAction = async (
-    expenseId: number,
-    action: ApprovalAction,
-    comment: string
-  ) => {
+  const handleSubmitRule = async (data: Partial<CreateApprovalRuleDto>) => {
     try {
-      if (action === "approve") {
-        await ApprovalAPI.approveExpense(expenseId, comment);
+      if (editingRule) {
+        const updated = await approvalApi.updateRule(editingRule.id, data);
+        setApprovalRules((prev) =>
+          prev.map((rule) => (rule.id === editingRule.id ? updated : rule))
+        );
+        toast({
+          title: "Success",
+          description: "Approval rule updated successfully",
+        });
       } else {
-        await ApprovalAPI.rejectExpense(expenseId, comment);
+        const created = await approvalApi.createRule(
+          data as CreateApprovalRuleDto
+        );
+        setApprovalRules((prev) => [...prev, created]);
+        toast({
+          title: "Success",
+          description: "Approval rule created successfully",
+        });
       }
-
-      // Remove the processed expense from pending list
-      setPendingApprovals((prev) =>
-        prev.filter((expense) => expense.id !== expenseId)
-      );
-
-      // TODO: Show success toast notification
-      console.log(`Expense ${expenseId} ${action}d successfully`);
+      setShowRuleForm(false);
+      setEditingRule(null);
     } catch (error) {
-      console.error(`Error ${action}ing expense:`, error);
-      // TODO: Show error toast notification
+      console.error("Error saving approval rule:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save approval rule",
+        variant: "destructive",
+      });
     }
   };
 
-  // Handlers for approval chains
-  const handleCreateChain = () => {
-    // TODO: Implement create chain dialog
-    console.log("Create new approval chain");
-  };
-
-  const handleEditChain = (chain: ApprovalChain) => {
-    // TODO: Implement edit chain dialog
-    console.log("Edit approval chain:", chain);
-  };
-
-  const handleDeleteChain = async (chainId: number) => {
+  const handleApprove = async (expenseId: string, comment?: string) => {
     try {
-      await ApprovalAPI.deleteApprovalChain(chainId);
-      setApprovalChains((prev) => prev.filter((chain) => chain.id !== chainId));
-      console.log("Approval chain deleted successfully");
+      await approvalApi.approveExpense(expenseId, comment);
+      setPendingApprovals((prev) =>
+        prev.filter((approval) => approval.expense.id !== expenseId)
+      );
+      toast({
+        title: "Success",
+        description: "Expense approved successfully",
+      });
     } catch (error) {
-      console.error("Error deleting approval chain:", error);
+      console.error("Error approving expense:", error);
+      toast({
+        title: "Error",
+        description: "Failed to approve expense",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReject = async (expenseId: string, comment: string) => {
+    try {
+      await approvalApi.rejectExpense(expenseId, comment);
+      setPendingApprovals((prev) =>
+        prev.filter((approval) => approval.expense.id !== expenseId)
+      );
+      toast({
+        title: "Success",
+        description: "Expense rejected successfully",
+      });
+    } catch (error) {
+      console.error("Error rejecting expense:", error);
+      toast({
+        title: "Error",
+        description: "Failed to reject expense",
+        variant: "destructive",
+      });
     }
   };
 
@@ -136,41 +183,38 @@ export default function Page() {
           <TabsTrigger value="pending">
             Pending Approvals ({pendingApprovals.length})
           </TabsTrigger>
-          <TabsTrigger value="chains">Approval Chains</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="settings">Escalation Settings</TabsTrigger>
+          <TabsTrigger value="rules">
+            Approval Rules ({approvalRules.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending" className="space-y-4">
-          <PendingApprovalsTab
-            expenses={pendingApprovals}
-            onApprovalAction={handleApprovalAction}
+          <PendingApprovalsList
+            approvals={pendingApprovals}
+            onApprove={handleApprove}
+            onReject={handleReject}
           />
         </TabsContent>
 
-        <TabsContent value="chains" className="space-y-4">
-          <ApprovalChainsTab
-            chains={approvalChains}
-            onCreateChain={handleCreateChain}
-            onEditChain={handleEditChain}
-            onDeleteChain={handleDeleteChain}
-          />
-        </TabsContent>
-
-        <TabsContent value="notifications" className="space-y-4">
-          <NotificationsTab
-            settings={notificationSettings}
-            onUpdateSettings={setNotificationSettings}
-          />
-        </TabsContent>
-
-        <TabsContent value="settings" className="space-y-4">
-          <EscalationSettingsTab
-            settings={escalationSettings}
-            onUpdateSettings={setEscalationSettings}
+        <TabsContent value="rules" className="space-y-4">
+          <ApprovalRulesList
+            rules={approvalRules}
+            onCreateRule={handleCreateRule}
+            onEditRule={handleEditRule}
+            onDeleteRule={handleDeleteRule}
           />
         </TabsContent>
       </Tabs>
+
+      <ApprovalRuleForm
+        open={showRuleForm}
+        onClose={() => {
+          setShowRuleForm(false);
+          setEditingRule(null);
+        }}
+        onSubmit={handleSubmitRule}
+        initialData={editingRule}
+      />
     </div>
   );
 }

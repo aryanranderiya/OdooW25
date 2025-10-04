@@ -14,5 +14,11 @@ export function PriorityBadge({ priority }: PriorityBadgeProps) {
     low: "Low Priority",
   };
 
-  return <Badge variant={variant as any}>{labels[priority]}</Badge>;
+  return (
+    <Badge
+      variant={variant as "default" | "secondary" | "destructive" | "outline"}
+    >
+      {labels[priority]}
+    </Badge>
+  );
 }

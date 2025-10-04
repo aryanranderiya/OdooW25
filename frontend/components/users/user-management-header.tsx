@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { DollarSign, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { ROUTES } from "@/lib/constants";
 
 interface UserManagementHeaderProps {
   userName: string;
@@ -24,7 +25,7 @@ export function UserManagementHeader({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push(ROUTES.DASHBOARD)}
           >
             <ArrowLeft className="size-5" />
           </Button>

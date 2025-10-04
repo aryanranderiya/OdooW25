@@ -1,23 +1,31 @@
-import currencyCodes from "currency-codes";
-
 export interface CurrencyOption {
   code: string;
   name: string;
   symbol: string;
-  countries: string[];
+  countries?: string[];
 }
 
-// Get all available currencies from the currency-codes library
+// Cache for currencies (loaded from API)
+let currenciesCache: CurrencyOption[] | null = null;
+
+// Get all available currencies (use the hook in components instead)
 export const getAllCurrencies = (): CurrencyOption[] => {
-  return currencyCodes.data
-    .filter((currency) => currency.currency && currency.code)
-    .map((currency) => ({
-      code: currency.code,
-      name: currency.currency,
-      symbol: getSymbolForCurrency(currency.code),
-      countries: currency.countries || [],
-    }))
-    .sort((a, b) => a.code.localeCompare(b.code));
+  // Return cache if available, otherwise return popular currencies as fallback
+  if (currenciesCache && currenciesCache.length > 0) {
+    return currenciesCache;
+  }
+
+  // Fallback to popular currencies if API hasn't loaded yet
+  return POPULAR_CURRENCIES.map((code) => ({
+    code,
+    name: code,
+    symbol: getSymbolForCurrency(code),
+  }));
+};
+
+// Set currencies cache (called by hooks/components after fetching from API)
+export const setCurrenciesCache = (currencies: CurrencyOption[]): void => {
+  currenciesCache = currencies;
 };
 
 // Helper function to get currency symbol
@@ -137,6 +145,17 @@ export const getCurrencyOptions = (): CurrencyOption[] => {
   );
 
   return [...popularCurrencyOptions, ...otherCurrencies];
+};
+
+// Format amount with currency
+export const formatAmount = (
+  amount: number,
+  currencyCode: string = "USD"
+): string => {
+  return `${getCurrencySymbol(currencyCode)}${amount.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 };
 
 // Format currency display with symbol

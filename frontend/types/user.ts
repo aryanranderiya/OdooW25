@@ -6,6 +6,7 @@ export interface User {
   companyId: string;
   managerId?: string;
   isManagerApprover: boolean;
+  emailVerified?: boolean;
   manager?: {
     id: string;
     name: string;
@@ -45,12 +46,13 @@ export interface LoginData {
 export interface AuthResponse {
   user: User;
   company: Company;
+  message?: string;
 }
 
 export interface CreateUserData {
   name: string;
   email: string;
-  password: string;
+  password?: string; // Make password optional since it will be generated
   role: "ADMIN" | "MANAGER" | "EMPLOYEE";
   managerId?: string;
   isManagerApprover?: boolean;

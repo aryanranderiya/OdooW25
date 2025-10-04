@@ -48,27 +48,36 @@ model Company {
 }
 
 model User {
-  id                      String            @id @default(cuid())
-  name                    String
-  email                   String            @unique
-  passwordHash            String
-  role                    UserRole          @default(EMPLOYEE)
-  isManagerApprover       Boolean           @default(false)
-  companyId               String
-  company                 Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  managerId               String?
-  manager                 User?             @relation("ManagerEmployee", fields: [managerId], references: [id])
-  employees               User[]            @relation("ManagerEmployee")
-  submittedExpenses       Expense[]         @relation("ExpenseSubmitter")
-  approvalRequests        ApprovalRequest[]
-  approvalSteps           ApprovalStep[]
-  specificApproverRules   ApprovalRule[]    @relation("SpecificApprover")
-  createdAt               DateTime          @default(now())
-  updatedAt               DateTime          @updatedAt
+  id                         String            @id @default(cuid())
+  name                       String
+  email                      String            @unique
+  passwordHash               String
+  role                       UserRole          @default(EMPLOYEE)
+  isManagerApprover          Boolean           @default(false)
+  emailVerified              Boolean           @default(false)
+  emailVerificationToken     String?           @unique
+  emailVerificationExpires   DateTime?
+  resetPasswordToken         String?           @unique
+  resetPasswordExpires       DateTime?
+  companyId                  String
+  company                    Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  managerId                  String?
+  manager                    User?             @relation("ManagerEmployee", fields: [managerId], references: [id])
+  employees                  User[]            @relation("ManagerEmployee")
+  submittedExpenses          Expense[]         @relation("ExpenseSubmitter")
+  approvalActions            ApprovalAction[]
+  approvalSteps              ApprovalStep[]
+  specificApproverRules      ApprovalRule[]    @relation("SpecificApprover")
+  notifications              Notification[]
+  uploadedReceipts           Receipt[]
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
 
   @@index([companyId])
   @@index([managerId])
   @@index([email])
+  @@index([emailVerificationToken])
+  @@index([resetPasswordToken])
 }
 
 model Category {
@@ -103,7 +112,7 @@ model Expense {
   approvalRuleId     String?
   approvalRule       ApprovalRule?     @relation(fields: [approvalRuleId], references: [id], onDelete: SetNull)
   expenseItems       ExpenseItem[]
-  approvalRequests   ApprovalRequest[]
+  approvalActions    ApprovalAction[]
   receipts           Receipt[]
   submittedAt        DateTime?
   approvedAt         DateTime?
@@ -143,11 +152,14 @@ model Receipt {
   extractedDate     DateTime?
   extractedVendor   String?
   extractedCategory String?
-  expenseId         String
-  expense           Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  expenseId         String?
+  expense           Expense? @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  uploadedById      String
+  uploadedBy        User     @relation(fields: [uploadedById], references: [id])
   uploadedAt        DateTime @default(now())
 
   @@index([expenseId])
+  @@index([uploadedById])
 }
 
 model ApprovalRule {
@@ -188,21 +200,43 @@ model ApprovalStep {
   @@index([approverId])
 }
 
-model ApprovalRequest {
+model ApprovalAction {
   id         String         @id @default(cuid())
   expenseId  String
   expense    Expense        @relation(fields: [expenseId], references: [id], onDelete: Cascade)
   approverId String
   approver   User           @relation(fields: [approverId], references: [id])
-  stepNumber Int
-  status     ApprovalStatus @default(PENDING)
+  status     ApprovalStatus
   comment    String?
-  actionDate DateTime?
   createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
 
-  @@unique([expenseId, stepNumber])
+  @@unique([expenseId, approverId])
   @@index([expenseId])
   @@index([approverId])
-  @@index([status])
+}
+
+enum NotificationType {
+  EXPENSE_SUBMITTED
+  EXPENSE_APPROVED
+  EXPENSE_REJECTED
+  APPROVAL_REQUEST
+  EXPENSE_UPDATED
+  SYSTEM
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  read      Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
 }
