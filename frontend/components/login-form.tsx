@@ -6,13 +6,7 @@ import * as z from "zod";
 import { useAuth } from "@/contexts/auth-context";
 import { ROUTES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -49,7 +43,8 @@ export function LoginForm({
     try {
       await login(data);
       toast.success("Welcome back!");
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       toast.error(
         error.response?.data?.message || "Login failed. Please try again."
       );

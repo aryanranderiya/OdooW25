@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/auth-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +17,6 @@ import { Mail, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function ForgotPasswordPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -34,8 +32,9 @@ export default function ForgotPasswordPage() {
       const response = await authApi.forgotPassword(email);
       setMessage(response.message);
       setEmail("");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to send reset email");
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || "Failed to send reset email");
     } finally {
       setIsLoading(false);
     }
@@ -49,8 +48,8 @@ export default function ForgotPasswordPage() {
             Forgot Password
           </CardTitle>
           <CardDescription className="text-center">
-            Enter your email address and we'll send you a link to reset your
-            password
+            Enter your email address and we&apos;ll send you a link to reset
+            your password
           </CardDescription>
         </CardHeader>
         <CardContent>

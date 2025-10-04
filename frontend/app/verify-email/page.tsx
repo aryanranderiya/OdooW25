@@ -43,7 +43,8 @@ export default function VerifyEmailPage() {
         setTimeout(() => {
           router.push("/dashboard");
         }, 2000);
-      } catch (error: any) {
+      } catch (err) {
+        const error = err as { response?: { data?: { message?: string } } };
         setStatus("error");
         setMessage(
           error.response?.data?.message ||

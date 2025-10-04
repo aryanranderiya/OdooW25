@@ -13,7 +13,7 @@ export interface OcrState {
 export interface UseOcrReturn {
   ocrState: OcrState;
   uploadAndProcess: (file: File) => Promise<void>;
-  createExpenseFromReceipt: () => Promise<any>;
+  createExpenseFromReceipt: () => Promise<unknown>;
   resetOcr: () => void;
 }
 
@@ -41,32 +41,7 @@ export function useOcr(): UseOcrReturn {
     setCurrentReceiptId(null);
   }, []);
 
-  const uploadAndProcess = useCallback(async (file: File) => {
-    setOcrState((prev) => ({
-      ...prev,
-      isProcessing: true,
-      errors: [],
-      warnings: [],
-    }));
-
-    try {
-      // Upload the file
-      const uploadResult = await expenseApi.uploadReceipts([file]);
-      const receiptId = uploadResult.receipts[0].receiptId;
-      setCurrentReceiptId(receiptId);
-
-      // Poll for OCR completion
-      await pollOcrCompletion(receiptId);
-    } catch (error) {
-      setOcrState((prev) => ({
-        ...prev,
-        isProcessing: false,
-        errors: [(error as Error).message || "Failed to process receipt"],
-      }));
-    }
-  }, []);
-
-  const pollOcrCompletion = async (receiptId: string) => {
+  const pollOcrCompletion = useCallback(async (receiptId: string) => {
     const maxAttempts = 60; // 1 minute timeout
     let attempts = 0;
 
@@ -96,7 +71,7 @@ export function useOcr(): UseOcrReturn {
         } else {
           throw new Error("OCR processing timeout");
         }
-      } catch (error) {
+      } catch {
         setOcrState((prev) => ({
           ...prev,
           isProcessing: false,
@@ -106,7 +81,35 @@ export function useOcr(): UseOcrReturn {
     };
 
     await poll();
-  };
+  }, []);
+
+  const uploadAndProcess = useCallback(
+    async (file: File) => {
+      setOcrState((prev) => ({
+        ...prev,
+        isProcessing: true,
+        errors: [],
+        warnings: [],
+      }));
+
+      try {
+        // Upload the file
+        const uploadResult = await expenseApi.uploadReceipts([file]);
+        const receiptId = uploadResult.receipts[0].receiptId;
+        setCurrentReceiptId(receiptId);
+
+        // Poll for OCR completion
+        await pollOcrCompletion(receiptId);
+      } catch (error) {
+        setOcrState((prev) => ({
+          ...prev,
+          isProcessing: false,
+          errors: [(error as Error).message || "Failed to process receipt"],
+        }));
+      }
+    },
+    [pollOcrCompletion]
+  );
 
   const validateOcrResults = (data: OcrExtractedData) => {
     const warnings: string[] = [];
@@ -125,7 +128,11 @@ export function useOcr(): UseOcrReturn {
     } else {
       const receiptDate = new Date(data.date);
       const now = new Date();
-      const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+      const oneYearAgo = new Date(
+        now.getFullYear() - 1,
+        now.getMonth(),
+        now.getDate()
+      );
 
       if (receiptDate > now) {
         warnings.push("Receipt date is in the future");
@@ -150,19 +157,22 @@ export function useOcr(): UseOcrReturn {
     try {
       const expense = await expenseApi.createExpenseFromReceipt(receiptId);
       return expense;
-    } catch (error) {
+    } catch (err) {
       setOcrState((prev) => ({
         ...prev,
         errors: [...prev.errors, "Failed to create expense from receipt"],
       }));
-      throw error;
+      throw err;
     }
   }, []);
 
   return {
     ocrState,
     uploadAndProcess,
-    createExpenseFromReceipt: () => (currentReceiptId ? createExpenseFromReceipt(currentReceiptId) : Promise.reject(new Error("No receipt ID"))),
+    createExpenseFromReceipt: () =>
+      currentReceiptId
+        ? createExpenseFromReceipt(currentReceiptId)
+        : Promise.reject(new Error("No receipt ID")),
     resetOcr,
   };
 }

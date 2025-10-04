@@ -7,14 +7,14 @@ export interface Notification {
   title: string;
   message: string;
   read: boolean;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
 
 export const notificationApi = {
   getNotifications: async (unreadOnly = false): Promise<Notification[]> => {
-    const response = await api.get(
+    const response = await api.get<Notification[]>(
       `/notifications${unreadOnly ? "?unreadOnly=true" : ""}`
     );
     return response.data;

@@ -19,7 +19,6 @@ import {
   getCurrencyOptions,
   searchCurrencies,
   POPULAR_CURRENCIES,
-  type CurrencyOption,
 } from "@/lib/currency";
 
 interface CurrencySelectProps {

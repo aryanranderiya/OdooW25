@@ -18,6 +18,8 @@ import { LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useSidebar, SidebarProvider } from "@/components/ui/sidebar-internal";
+import { motion } from "motion/react";
 // import { NotificationBell } from "@/components/notification-bell";
 
 export default function Layout({
@@ -26,21 +28,24 @@ export default function Layout({
   children: React.ReactNode;
 }>) {
   return (
-    <div
-      className={cn(
-        "rounded-md flex flex-col md:flex-row bg-gray-100 dark:bg-neutral-800 w-full flex-1 mx-auto border border-neutral-200 dark:border-neutral-700 overflow-hidden",
-        "h-screen"
-      )}
-    >
-      <DasSidebar />
-      <Dashboard>{children}</Dashboard>
-    </div>
+    <SidebarProvider animate>
+      <div
+        className={cn(
+          "rounded-md flex flex-col md:flex-row bg-gray-100 dark:bg-neutral-800 w-full flex-1 mx-auto border border-neutral-200 dark:border-neutral-700 overflow-hidden",
+          "h-screen"
+        )}
+      >
+        <DasSidebar />
+        <Dashboard>{children}</Dashboard>
+      </div>
+    </SidebarProvider>
   );
 }
 
 export const Dashboard = ({ children }: { children: React.ReactNode }) => {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const { open, animate } = useSidebar();
 
   const handleLogout = async () => {
     await logout();
@@ -56,7 +61,13 @@ export const Dashboard = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <div className="p-2 rounded-tl-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 flex flex-col gap-2 flex-1 w-full h-full">
+    <motion.div
+      animate={{
+        paddingLeft: animate ? (open ? "16px" : "8px") : "8px",
+      }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="p-2 rounded-tl-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 flex flex-col gap-2 flex-1 w-full h-full"
+    >
       <header className="">
         <div className="container mx-auto flex h-12 items-center justify-between ">
           <div className="flex items-center gap-2">
@@ -111,6 +122,6 @@ export const Dashboard = ({ children }: { children: React.ReactNode }) => {
       </header>
 
       <div className="overflow-auto rounded-2xl">{children}</div>
-    </div>
+    </motion.div>
   );
 };

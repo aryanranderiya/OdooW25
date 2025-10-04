@@ -19,7 +19,8 @@ export function EmailVerificationAlert({ email }: EmailVerificationAlertProps) {
     try {
       await authApi.resendVerification(email);
       toast.success("Verification email sent! Please check your inbox.");
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       toast.error(
         error.response?.data?.message || "Failed to resend verification email"
       );

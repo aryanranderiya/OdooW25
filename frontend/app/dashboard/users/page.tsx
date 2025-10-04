@@ -10,14 +10,14 @@ import { useRouter } from "next/navigation";
 import { CreateUserDialog } from "@/components/users/create-user-dialog";
 import { EditUserDialog } from "@/components/users/edit-user-dialog";
 import { DeleteUserDialog } from "@/components/users/delete-user-dialog";
-import { UserManagementHeader } from "@/components/users/user-management-header";
+
 import { UsersCard } from "@/components/users/users-card";
 import { UserFilters } from "@/components/users/user-filters";
 import { UserTable } from "@/components/users/user-table";
 import { ROUTES } from "@/lib/constants";
 
 function UserManagementContent() {
-  const { user: currentUser, company, logout } = useAuth();
+  const { user: currentUser, company } = useAuth();
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -41,7 +41,7 @@ function UserManagementContent() {
       const data = await userApi.list();
       setUsers(data);
       setFilteredUsers(data);
-    } catch (error: any) {
+    } catch {
       toast.error("Failed to load users");
     } finally {
       setIsLoading(false);
