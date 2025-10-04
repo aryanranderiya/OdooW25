@@ -58,23 +58,55 @@ export function ApprovalRuleForm({
     watch,
     reset,
     formState: { errors },
-  } = useForm({
+  } = useForm<any>({
     defaultValues: {
-      name: initialData?.name || "",
-      description: initialData?.description || "",
-      ruleType: initialData?.ruleType || ApprovalRuleType.SEQUENTIAL,
-      isActive: initialData?.isActive ?? true,
-      minAmount: initialData?.minAmount || undefined,
-      maxAmount: initialData?.maxAmount || undefined,
-      percentageThreshold: initialData?.percentageThreshold || undefined,
-      specificApproverId: initialData?.specificApproverId || "",
-      requireManagerFirst: initialData?.requireManagerFirst || false,
+      name: "",
+      description: "",
+      ruleType: ApprovalRuleType.SEQUENTIAL,
+      isActive: true,
+      minAmount: undefined,
+      maxAmount: undefined,
+      percentageThreshold: undefined,
+      specificApproverId: "",
+      requireManagerFirst: false,
     },
   });
 
   useEffect(() => {
     loadUsers();
   }, []);
+
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        name: initialData.name || "",
+        description: initialData.description || "",
+        ruleType: initialData.ruleType || ApprovalRuleType.SEQUENTIAL,
+        isActive: initialData.isActive ?? true,
+        minAmount: initialData.minAmount || undefined,
+        maxAmount: initialData.maxAmount || undefined,
+        percentageThreshold: initialData.percentageThreshold || undefined,
+        specificApproverId: initialData.specificApproverId || "",
+        requireManagerFirst: initialData.requireManagerFirst || false,
+      });
+      setRuleType(initialData.ruleType || ApprovalRuleType.SEQUENTIAL);
+      setApprovalSteps(initialData.approvalSteps || []);
+    } else {
+      reset({
+        name: "",
+        description: "",
+        ruleType: ApprovalRuleType.SEQUENTIAL,
+        isActive: true,
+        minAmount: undefined,
+        maxAmount: undefined,
+        percentageThreshold: undefined,
+        specificApproverId: "",
+        requireManagerFirst: false,
+      });
+      setRuleType(ApprovalRuleType.SEQUENTIAL);
+      setApprovalSteps([]);
+    }
+  }, [initialData, reset]);
 
   const loadUsers = async () => {
     try {
@@ -165,7 +197,9 @@ export function ApprovalRuleForm({
                 placeholder="e.g., Standard Approval Flow"
               />
               {errors.name && (
-                <p className="text-sm text-red-500">{errors.name.message}</p>
+                <p className="text-sm text-red-500">
+                  {String(errors.name.message || "This field is required")}
+                </p>
               )}
             </div>
 
