@@ -12,3 +12,204 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+enum ExpenseStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ApprovalRuleType {
+  SEQUENTIAL
+  PERCENTAGE
+  SPECIFIC_APPROVER
+  HYBRID
+}
+
+model Company {
+  id            String         @id @default(cuid())
+  name          String
+  country       String
+  currency      String
+  users         User[]
+  expenses      Expense[]
+  approvalRules ApprovalRule[]
+  categories    Category[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model User {
+  id                      String            @id @default(cuid())
+  name                    String
+  email                   String            @unique
+  passwordHash            String
+  refreshTokenHash        String?
+  role                    UserRole          @default(EMPLOYEE)
+  isManagerApprover       Boolean           @default(false)
+  companyId               String
+  company                 Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  managerId               String?
+  manager                 User?             @relation("ManagerEmployee", fields: [managerId], references: [id])
+  employees               User[]            @relation("ManagerEmployee")
+  submittedExpenses       Expense[]         @relation("ExpenseSubmitter")
+  approvalRequests        ApprovalRequest[]
+  approvalSteps           ApprovalStep[]
+  specificApproverRules   ApprovalRule[]    @relation("SpecificApprover")
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+
+  @@index([companyId])
+  @@index([managerId])
+  @@index([email])
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  companyId String
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  expenses  Expense[]
+  createdAt DateTime  @default(now())
+
+  @@unique([companyId, name])
+  @@index([companyId])
+}
+
+model Expense {
+  id                 String            @id @default(cuid())
+  title              String
+  description        String?
+  originalAmount     Float
+  originalCurrency   String
+  convertedAmount    Float
+  companyCurrency    String
+  exchangeRate       Float             @default(1.0)
+  expenseDate        DateTime
+  status             ExpenseStatus     @default(DRAFT)
+  submitterId        String
+  submitter          User              @relation("ExpenseSubmitter", fields: [submitterId], references: [id])
+  companyId          String
+  company            Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  categoryId         String?
+  category           Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  approvalRuleId     String?
+  approvalRule       ApprovalRule?     @relation(fields: [approvalRuleId], references: [id], onDelete: SetNull)
+  expenseItems       ExpenseItem[]
+  approvalRequests   ApprovalRequest[]
+  receipts           Receipt[]
+  submittedAt        DateTime?
+  approvedAt         DateTime?
+  rejectedAt         DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([submitterId])
+  @@index([companyId])
+  @@index([status])
+  @@index([categoryId])
+  @@index([expenseDate])
+}
+
+model ExpenseItem {
+  id          String   @id @default(cuid())
+  description String
+  amount      Float
+  currency    String
+  quantity    Int      @default(1)
+  expenseId   String
+  expense     Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([expenseId])
+}
+
+model Receipt {
+  id                String   @id @default(cuid())
+  filename          String
+  fileUrl           String
+  fileSize          Int
+  mimeType          String
+  ocrProcessed      Boolean  @default(false)
+  ocrData           Json?
+  extractedAmount   Float?
+  extractedDate     DateTime?
+  extractedVendor   String?
+  extractedCategory String?
+  expenseId         String
+  expense           Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  uploadedAt        DateTime @default(now())
+
+  @@index([expenseId])
+}
+
+model ApprovalRule {
+  id                   String           @id @default(cuid())
+  name                 String
+  description          String?
+  ruleType             ApprovalRuleType
+  isActive             Boolean          @default(true)
+  minAmount            Float?
+  maxAmount            Float?
+  percentageThreshold  Int?
+  specificApproverId   String?
+  specificApprover     User?            @relation("SpecificApprover", fields: [specificApproverId], references: [id], onDelete: SetNull)
+  requireManagerFirst  Boolean          @default(false)
+  companyId            String
+  company              Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  approvalSteps        ApprovalStep[]
+  expenses             Expense[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  @@index([companyId])
+  @@index([isActive])
+}
+
+model ApprovalStep {
+  id             String       @id @default(cuid())
+  sequence       Int
+  approverId     String
+  approver       User         @relation(fields: [approverId], references: [id])
+  approvalRuleId String
+  approvalRule   ApprovalRule @relation(fields: [approvalRuleId], references: [id], onDelete: Cascade)
+  isRequired     Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+
+  @@unique([approvalRuleId, sequence])
+  @@index([approvalRuleId])
+  @@index([approverId])
+}
+
+model ApprovalRequest {
+  id         String         @id @default(cuid())
+  expenseId  String
+  expense    Expense        @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  approverId String
+  approver   User           @relation(fields: [approverId], references: [id])
+  stepNumber Int
+  status     ApprovalStatus @default(PENDING)
+  comment    String?
+  actionDate DateTime?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@unique([expenseId, stepNumber])
+  @@index([expenseId])
+  @@index([approverId])
+  @@index([status])
+}
