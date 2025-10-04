@@ -48,29 +48,36 @@ model Company {
 }
 
 model User {
-  id                      String            @id @default(cuid())
-  name                    String
-  email                   String            @unique
-  passwordHash            String
-  role                    UserRole          @default(EMPLOYEE)
-  isManagerApprover       Boolean           @default(false)
-  companyId               String
-  company                 Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  managerId               String?
-  manager                 User?             @relation("ManagerEmployee", fields: [managerId], references: [id])
-  employees               User[]            @relation("ManagerEmployee")
-  submittedExpenses       Expense[]         @relation("ExpenseSubmitter")
-  approvalRequests        ApprovalRequest[]
-  approvalSteps           ApprovalStep[]
-  specificApproverRules   ApprovalRule[]    @relation("SpecificApprover")
-  notifications           Notification[]
-  uploadedReceipts        Receipt[]
-  createdAt               DateTime          @default(now())
-  updatedAt               DateTime          @updatedAt
+  id                         String            @id @default(cuid())
+  name                       String
+  email                      String            @unique
+  passwordHash               String
+  role                       UserRole          @default(EMPLOYEE)
+  isManagerApprover          Boolean           @default(false)
+  emailVerified              Boolean           @default(false)
+  emailVerificationToken     String?           @unique
+  emailVerificationExpires   DateTime?
+  resetPasswordToken         String?           @unique
+  resetPasswordExpires       DateTime?
+  companyId                  String
+  company                    Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  managerId                  String?
+  manager                    User?             @relation("ManagerEmployee", fields: [managerId], references: [id])
+  employees                  User[]            @relation("ManagerEmployee")
+  submittedExpenses          Expense[]         @relation("ExpenseSubmitter")
+  approvalRequests           ApprovalRequest[]
+  approvalSteps              ApprovalStep[]
+  specificApproverRules      ApprovalRule[]    @relation("SpecificApprover")
+  notifications              Notification[]
+  uploadedReceipts           Receipt[]
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
 
   @@index([companyId])
   @@index([managerId])
   @@index([email])
+  @@index([emailVerificationToken])
+  @@index([resetPasswordToken])
 }
 
 model Category {
