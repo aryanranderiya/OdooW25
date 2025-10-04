@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
-import { DollarSign } from "lucide-react";
+import { CardIcon } from "@/components/ui/icons";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -29,7 +29,7 @@ export default function Home() {
       <main className="flex max-w-4xl flex-col items-center gap-8 text-center">
         <div className="flex items-center gap-3">
           <div className="bg-primary text-primary-foreground flex size-12 items-center justify-center rounded-xl">
-            <DollarSign className="size-8" />
+            <CardIcon className="size-8" />
           </div>
           <h1 className="text-4xl font-bold">Expense Management</h1>
         </div>

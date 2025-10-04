@@ -10,9 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DollarSign } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { ROUTES } from "@/lib/constants";
 
 function DashboardContent() {
   const { user, company, logout } = useAuth();
@@ -20,26 +17,6 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-muted/40">
-      <header className="border-b bg-background">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
-              <DollarSign className="size-5" />
-            </div>
-            <span className="text-lg font-semibold">Expense Management</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-sm">
-              <div className="font-medium">{user?.name}</div>
-              <div className="text-muted-foreground text-xs">{user?.role}</div>
-            </div>
-            <Button variant="outline" onClick={logout}>
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
-
       <main className="container mx-auto p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -128,8 +105,8 @@ function DashboardContent() {
 
 export default function DashboardPage() {
   return (
-    <AuthGuard>
-      <DashboardContent />
-    </AuthGuard>
+    // <AuthGuard>
+    <DashboardContent />
+    // </AuthGuard>
   );
 }
