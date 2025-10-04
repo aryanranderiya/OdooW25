@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApprovalRulesList } from "@/components/approval-rules/approval-rules-list";
 import { ApprovalRuleForm } from "@/components/approval-rules/approval-rule-form";
 import { PendingApprovalsList } from "@/components/approval-rules/pending-approvals-list";
-import { approvalApi, ApprovalRule, PendingApproval } from "@/lib/approval-api";
+import {
+  approvalApi,
+  ApprovalRule,
+  PendingApproval,
+  CreateApprovalRuleDto,
+} from "@/lib/approval-api";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Page() {
@@ -18,11 +23,7 @@ export default function Page() {
   const [editingRule, setEditingRule] = useState<ApprovalRule | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
       const [rules, approvals] = await Promise.all([
@@ -41,7 +42,11 @@ export default function Page() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleCreateRule = () => {
     setEditingRule(null);
@@ -75,7 +80,7 @@ export default function Page() {
     }
   };
 
-  const handleSubmitRule = async (data: any) => {
+  const handleSubmitRule = async (data: Partial<CreateApprovalRuleDto>) => {
     try {
       if (editingRule) {
         const updated = await approvalApi.updateRule(editingRule.id, data);

@@ -22,7 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import type { Expense } from "@/lib/types/expense";
 import { ExpenseStatus } from "@/lib/types/expense";
 

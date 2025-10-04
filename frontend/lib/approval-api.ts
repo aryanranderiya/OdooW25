@@ -83,7 +83,7 @@ export interface PendingApproval {
       id: string;
       name: string;
     };
-    receipts: any[];
+    receipts: Array<Record<string, unknown>>;
     approvalActions: Array<{
       id: string;
       status: string;

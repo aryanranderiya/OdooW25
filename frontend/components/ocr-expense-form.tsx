@@ -8,9 +8,27 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CurrencySelect } from "@/components/ui/currency-select";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Camera, FileText, AlertCircle, CheckCircle2, Loader2, CalendarIcon } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Upload,
+  Camera,
+  FileText,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  CalendarIcon,
+} from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useOcr } from "@/hooks/use-ocr";
@@ -37,7 +55,8 @@ const mockCategories = [
 
 export default function OcrExpenseForm() {
   const router = useRouter();
-  const { ocrState, uploadAndProcess, createExpenseFromReceipt, resetOcr } = useOcr();
+  const { ocrState, uploadAndProcess, createExpenseFromReceipt, resetOcr } =
+    useOcr();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,13 +90,19 @@ export default function OcrExpenseForm() {
       setFormData((prev) => ({
         ...prev,
         originalAmount: ocrState.data?.amount || prev.originalAmount,
-        title: ocrState.data?.vendor ? `Expense from ${ocrState.data.vendor}` : prev.title,
+        title: ocrState.data?.vendor
+          ? `Expense from ${ocrState.data.vendor}`
+          : prev.title,
         expenseDate: ocrState.data?.date || prev.expenseDate,
       }));
 
       // Find matching category
       if (ocrState.data.category) {
-        const matchingCategory = mockCategories.find((cat) => cat.name.toLowerCase().includes(ocrState.data?.category?.toLowerCase() || ""));
+        const matchingCategory = mockCategories.find((cat) =>
+          cat.name
+            .toLowerCase()
+            .includes(ocrState.data?.category?.toLowerCase() || "")
+        );
         if (matchingCategory) {
           setFormData((prev) => ({ ...prev, categoryId: matchingCategory.id }));
         }
@@ -85,17 +110,22 @@ export default function OcrExpenseForm() {
     }
   }, [ocrState.data]);
 
-  const handleOcrCorrection = (field: string, value: any) => {
+  const handleOcrCorrection = (
+    field: string,
+    value: number | string | Date
+  ) => {
     // Update form data directly since we're not sending corrections to API anymore
-    if (field === "amount") {
+    if (field === "amount" && typeof value === "number") {
       setFormData((prev) => ({ ...prev, originalAmount: value }));
-    } else if (field === "vendor") {
+    } else if (field === "vendor" && typeof value === "string") {
       setFormData((prev) => ({ ...prev, title: `Expense from ${value}` }));
-    } else if (field === "date") {
+    } else if (field === "date" && value instanceof Date) {
       setFormData((prev) => ({ ...prev, expenseDate: value }));
-    } else if (field === "category") {
+    } else if (field === "category" && typeof value === "string") {
       // Find matching category ID when category is corrected
-      const matchingCategory = mockCategories.find((cat) => cat.name.toLowerCase().includes(value?.toLowerCase() || ""));
+      const matchingCategory = mockCategories.find((cat) =>
+        cat.name.toLowerCase().includes(value.toLowerCase() || "")
+      );
       if (matchingCategory) {
         setFormData((prev) => ({ ...prev, categoryId: matchingCategory.id }));
       }
@@ -131,8 +161,12 @@ export default function OcrExpenseForm() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Expense with OCR</h1>
-        <p className="text-gray-600">Upload a receipt and let AI extract the details for you</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Create Expense with OCR
+        </h1>
+        <p className="text-gray-600">
+          Upload a receipt and let AI extract the details for you
+        </p>
       </div>
 
       {/* Receipt Upload Section */}
@@ -145,11 +179,21 @@ export default function OcrExpenseForm() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-            <input type="file" accept="image/*,.pdf" onChange={handleFileSelect} className="hidden" id="receipt-upload" />
+            <input
+              type="file"
+              accept="image/*,.pdf"
+              onChange={handleFileSelect}
+              className="hidden"
+              id="receipt-upload"
+            />
             <label htmlFor="receipt-upload" className="cursor-pointer">
               <Upload className="h-10 w-10 mx-auto text-gray-400 mb-2" />
-              <p className="text-sm text-gray-600">Click to upload receipt or drag and drop</p>
-              <p className="text-xs text-gray-500 mt-1">PNG, JPG, PDF up to 10MB</p>
+              <p className="text-sm text-gray-600">
+                Click to upload receipt or drag and drop
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                PNG, JPG, PDF up to 10MB
+              </p>
             </label>
           </div>
 
@@ -159,7 +203,11 @@ export default function OcrExpenseForm() {
                 <FileText className="h-4 w-4 text-gray-500" />
                 <span className="text-sm font-medium">{selectedFile.name}</span>
               </div>
-              <Button onClick={handleOcrProcess} disabled={ocrState.isProcessing} size="sm">
+              <Button
+                onClick={handleOcrProcess}
+                disabled={ocrState.isProcessing}
+                size="sm"
+              >
                 {ocrState.isProcessing ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -178,33 +226,55 @@ export default function OcrExpenseForm() {
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
                 <span className="font-medium">OCR Processing Complete</span>
-                <span className="text-sm text-gray-500">Confidence: {Math.round(ocrState.confidence * 100)}%</span>
+                <span className="text-sm text-gray-500">
+                  Confidence: {Math.round(ocrState.confidence * 100)}%
+                </span>
               </div>
 
               <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
                 <div>
-                  <Label className="text-sm font-medium">Extracted Amount</Label>
-                  <p className="text-lg font-semibold">${ocrState.data.amount?.toFixed(2) || "Not found"}</p>
+                  <Label className="text-sm font-medium">
+                    Extracted Amount
+                  </Label>
+                  <p className="text-lg font-semibold">
+                    ${ocrState.data.amount?.toFixed(2) || "Not found"}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Vendor</Label>
-                  <p className="text-lg font-semibold">{ocrState.data.vendor || "Not found"}</p>
+                  <p className="text-lg font-semibold">
+                    {ocrState.data.vendor || "Not found"}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Date</Label>
-                  <p className="text-lg font-semibold">{ocrState.data.date ? format(new Date(ocrState.data.date), "MMM dd, yyyy") : "Not found"}</p>
+                  <p className="text-lg font-semibold">
+                    {ocrState.data.date
+                      ? format(new Date(ocrState.data.date), "MMM dd, yyyy")
+                      : "Not found"}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Category</Label>
-                  <p className="text-lg font-semibold">{ocrState.data.category || "Not found"}</p>
+                  <p className="text-lg font-semibold">
+                    {ocrState.data.category || "Not found"}
+                  </p>
                 </div>
               </div>
 
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setShowOcrCorrection(!showOcrCorrection)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowOcrCorrection(!showOcrCorrection)}
+                >
                   {showOcrCorrection ? "Hide" : "Correct"} OCR Data
                 </Button>
-                <Button onClick={handleCreateFromReceipt} disabled={isSubmitting} size="sm">
+                <Button
+                  onClick={handleCreateFromReceipt}
+                  disabled={isSubmitting}
+                  size="sm"
+                >
                   Auto-Create Expense
                 </Button>
               </div>
@@ -221,24 +291,45 @@ export default function OcrExpenseForm() {
                         type="number"
                         step="0.01"
                         value={ocrState.data.amount || ""}
-                        onChange={(e) => handleOcrCorrection("amount", parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          handleOcrCorrection(
+                            "amount",
+                            parseFloat(e.target.value)
+                          )
+                        }
                       />
                     </div>
                     <div>
                       <Label>Vendor</Label>
-                      <Input value={ocrState.data.vendor || ""} onChange={(e) => handleOcrCorrection("vendor", e.target.value)} />
+                      <Input
+                        value={ocrState.data.vendor || ""}
+                        onChange={(e) =>
+                          handleOcrCorrection("vendor", e.target.value)
+                        }
+                      />
                     </div>
                     <div>
                       <Label>Date</Label>
                       <Input
                         type="date"
-                        value={ocrState.data.date ? format(new Date(ocrState.data.date), "yyyy-MM-dd") : ""}
-                        onChange={(e) => handleOcrCorrection("date", new Date(e.target.value))}
+                        value={
+                          ocrState.data.date
+                            ? format(new Date(ocrState.data.date), "yyyy-MM-dd")
+                            : ""
+                        }
+                        onChange={(e) =>
+                          handleOcrCorrection("date", new Date(e.target.value))
+                        }
                       />
                     </div>
                     <div>
                       <Label>Category</Label>
-                      <Input value={ocrState.data.category || ""} onChange={(e) => handleOcrCorrection("category", e.target.value)} />
+                      <Input
+                        value={ocrState.data.category || ""}
+                        onChange={(e) =>
+                          handleOcrCorrection("category", e.target.value)
+                        }
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -284,7 +375,9 @@ export default function OcrExpenseForm() {
                 <Textarea
                   id="title"
                   value={formData.title}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, title: e.target.value }))
+                  }
                   placeholder="Enter expense description"
                   required
                 />
@@ -355,7 +448,8 @@ export default function OcrExpenseForm() {
                       ...prev,
                       categoryId: value,
                     }))
-                  }>
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -374,7 +468,14 @@ export default function OcrExpenseForm() {
               <Button type="button" variant="outline">
                 Save as Draft
               </Button>
-              <Button type="submit" disabled={isSubmitting || !formData.title || formData.originalAmount <= 0}>
+              <Button
+                type="submit"
+                disabled={
+                  isSubmitting ||
+                  !formData.title ||
+                  formData.originalAmount <= 0
+                }
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />

@@ -8,7 +8,6 @@ import {
 import {
   IconDashboard,
   IconUsers,
-  IconSettings,
   IconReceipt,
   IconPlus,
 } from "@tabler/icons-react";
@@ -21,7 +20,6 @@ import { useRouter } from "next/navigation";
 
 export function DasSidebar() {
   const { user } = useAuth();
-  const router = useRouter();
 
   const baseLinks = [
     {

@@ -42,7 +42,7 @@ import { useState, useEffect } from "react";
 import StatusFlow from "./status-flow";
 import { createExpense } from "@/hooks/use-expenses";
 import { useCategories } from "@/hooks/use-categories";
-import { useCurrencyConversion } from "@/hooks/use-currency";
+
 import { toast } from "sonner";
 import { ROUTES } from "@/lib/constants";
 import { useAuth } from "@/contexts/auth-context";
@@ -89,7 +89,6 @@ export default function ExpenseForm({
     categoryId: initialData?.categoryId || "",
     receipts: initialData?.receipts || [],
   });
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [selectedOcrFile, setSelectedOcrFile] = useState<File | null>(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [remarks, setRemarks] = useState("");

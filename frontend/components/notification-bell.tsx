@@ -10,13 +10,8 @@ import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
 export function NotificationBell() {
-  const {
-    notifications,
-    unreadCount,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification,
-  } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } =
+    useNotifications();
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -71,42 +66,54 @@ export function NotificationBell() {
             </div>
           ) : (
             <div className="divide-y">
-              {notifications.map((notification: any) => (
-                <div
-                  key={notification.id}
-                  className={cn(
-                    "p-4 hover:bg-accent cursor-pointer transition-colors",
-                    !notification.read && "bg-accent/50"
-                  )}
-                  onClick={() =>
-                    !notification.read && markAsRead(notification.id)
-                  }
-                >
-                  <div className="flex gap-3">
-                    <div className="text-2xl flex-shrink-0">
-                      {getNotificationIcon(notification.type)}
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="font-medium text-sm leading-tight">
-                          {notification.title}
-                        </p>
-                        {!notification.read && (
-                          <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0 mt-1" />
-                        )}
+              {notifications.map(
+                (notification: {
+                  id: string;
+                  type: string;
+                  title: string;
+                  message: string;
+                  read: boolean;
+                  createdAt: string;
+                }) => (
+                  <div
+                    key={notification.id}
+                    className={cn(
+                      "p-4 hover:bg-accent cursor-pointer transition-colors",
+                      !notification.read && "bg-accent/50"
+                    )}
+                    onClick={() =>
+                      !notification.read && markAsRead(notification.id)
+                    }
+                  >
+                    <div className="flex gap-3">
+                      <div className="text-2xl flex-shrink-0">
+                        {getNotificationIcon(notification.type)}
                       </div>
-                      <p className="text-sm text-muted-foreground leading-tight">
-                        {notification.message}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(notification.createdAt), {
-                          addSuffix: true,
-                        })}
-                      </p>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-medium text-sm leading-tight">
+                            {notification.title}
+                          </p>
+                          {!notification.read && (
+                            <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0 mt-1" />
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground leading-tight">
+                          {notification.message}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(
+                            new Date(notification.createdAt),
+                            {
+                              addSuffix: true,
+                            }
+                          )}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
           )}
         </ScrollArea>

@@ -21,13 +21,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ApprovalRuleType, ApprovalRule } from "@/lib/approval-api";
+import {
+  ApprovalRuleType,
+  ApprovalRule,
+  CreateApprovalRuleDto,
+} from "@/lib/approval-api";
 import { userApi } from "@/lib/user-api";
 
 interface ApprovalRuleFormProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: Partial<CreateApprovalRuleDto>) => void;
   initialData?: ApprovalRule | null;
 }
 
@@ -40,10 +44,12 @@ export function ApprovalRuleForm({
   const [ruleType, setRuleType] = useState<ApprovalRuleType>(
     initialData?.ruleType || ApprovalRuleType.SEQUENTIAL
   );
-  const [users, setUsers] = useState<any[]>([]);
-  const [approvalSteps, setApprovalSteps] = useState<any[]>(
-    initialData?.approvalSteps || []
-  );
+  const [users, setUsers] = useState<
+    Array<{ id: string; name: string; role: string }>
+  >([]);
+  const [approvalSteps, setApprovalSteps] = useState<
+    Array<{ sequence: number; approverId: string; isRequired: boolean }>
+  >(initialData?.approvalSteps || []);
 
   const {
     register,
@@ -91,32 +97,38 @@ export function ApprovalRuleForm({
     setApprovalSteps(updated.map((step, i) => ({ ...step, sequence: i + 1 })));
   };
 
-  const updateApprovalStep = (index: number, field: string, value: any) => {
+  const updateApprovalStep = (
+    index: number,
+    field: string,
+    value: string | boolean
+  ) => {
     const updated = [...approvalSteps];
     updated[index] = { ...updated[index], [field]: value };
     setApprovalSteps(updated);
   };
 
-  const onFormSubmit = (data: any) => {
-    // Convert empty strings to null for numeric fields
-    const sanitizedData = {
-      ...data,
+  const onFormSubmit = (data: Record<string, unknown>) => {
+    // Convert empty strings to undefined for numeric fields
+    const sanitizedData: Partial<CreateApprovalRuleDto> = {
+      ...(data as Partial<CreateApprovalRuleDto>),
       ruleType,
       minAmount:
         data.minAmount === "" || data.minAmount === undefined
-          ? null
-          : parseFloat(data.minAmount),
+          ? undefined
+          : parseFloat(String(data.minAmount)),
       maxAmount:
         data.maxAmount === "" || data.maxAmount === undefined
-          ? null
-          : parseFloat(data.maxAmount),
+          ? undefined
+          : parseFloat(String(data.maxAmount)),
       percentageThreshold:
         data.percentageThreshold === "" ||
         data.percentageThreshold === undefined
-          ? null
-          : parseInt(data.percentageThreshold),
+          ? undefined
+          : parseInt(String(data.percentageThreshold)),
       specificApproverId:
-        data.specificApproverId === "" ? null : data.specificApproverId,
+        data.specificApproverId === ""
+          ? undefined
+          : String(data.specificApproverId || ""),
       approvalSteps:
         ruleType === ApprovalRuleType.SEQUENTIAL ||
         ruleType === ApprovalRuleType.PERCENTAGE ||

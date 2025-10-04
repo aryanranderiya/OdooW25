@@ -102,13 +102,14 @@ export function SignupForm({
         companyName: data.companyName,
         country: data.country,
       });
-      
+
       if (response) {
         toast.success(
           "Account created! Please check your email to verify your account."
         );
       }
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       toast.error(
         error.response?.data?.message || "Signup failed. Please try again."
       );
