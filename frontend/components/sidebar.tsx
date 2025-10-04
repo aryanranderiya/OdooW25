@@ -36,13 +36,6 @@ export function DasSidebar() {
         <IconReceipt className="h-5 w-5 flex-shrink-0 text-neutral-600 dark:text-neutral-400" />
       ),
     },
-    {
-      label: "Approvals",
-      href: ROUTES.ADMIN,
-      icon: (
-        <CheckCheck className="h-5 w-5 flex-shrink-0 text-neutral-600 dark:text-neutral-400" />
-      ),
-    },
   ];
 
   const adminLinks = [
