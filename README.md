@@ -5,9 +5,9 @@
 
 ## Odoo Hackathon - October 4th, 2025 (Virtual Round)
 
-**Team Name:** WinPaglu
-**Problem Statement:** Expense Management
-**Reviewer:** Aman Patel
+**Team Name:** WinPaglu <br/>
+**Problem Statement:** Expense Management <br/>
+**Reviewer:** Aman Patel <br/>
 
 ## Deployment
 
@@ -18,6 +18,11 @@ Demo Video: [odoow25video.aryanranderiya.com](https://odoow25.aryanranderiya.com
 <a href="https://github.com/aryanranderiya/odoow25/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=aryanranderiya/odoow25" />
 </a>
+
+## Screenshots
+
+<img width="2984" height="4702" alt="Screen Capture Dashboard Oct 4 2025" src="https://github.com/user-attachments/assets/3a77bc8b-22b5-4a2a-844c-8fa4eeb7b4d0" />
+<img width="2136" height="1766" alt="CleanShot_2025-10-04_at_18 22 302x" src="https://github.com/user-attachments/assets/dac51fe2-fb2a-4087-9301-fa641e50c188" />
 
 ## Quick Start
 
